@@ -45,6 +45,9 @@ jobs:
       - name: Build debug APK
         run: |
           # Gradle 8.9 / Kotlin 2.0 cannot run on newer JDKs, so force JDK 17 explicitly.
+          # Android Studio can generate a daemon-JVM file that requests JDK 25, which Gradle 8.9 /
+          # Kotlin 2.0 can't run on. CI uses JDK 17, so ignore that file here.
+          rm -f gradle/gradle-daemon-jvm.properties
           export JAVA_HOME="${JAVA_HOME_17_X64:-$JAVA_HOME}"
           export PATH="$JAVA_HOME/bin:$PATH"
           java -version
