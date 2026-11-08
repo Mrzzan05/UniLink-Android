@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -35,8 +35,20 @@ jobs:
         with:
           gradle-version: "8.9"
 
+      - name: Show Java
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          echo "JAVA_HOME_17_X64=$JAVA_HOME_17_X64"
+          which java
+          java -version
+
       - name: Build debug APK
-        run: gradle :app:assembleDebug --stacktrace --no-daemon
+        run: |
+          # Gradle 8.9 / Kotlin 2.0 cannot run on newer JDKs, so force JDK 17 explicitly.
+          export JAVA_HOME="${JAVA_HOME_17_X64:-$JAVA_HOME}"
+          export PATH="$JAVA_HOME/bin:$PATH"
+          java -version
+          gradle :app:assembleDebug --stacktrace --no-daemon -Dorg.gradle.java.home="$JAVA_HOME"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
