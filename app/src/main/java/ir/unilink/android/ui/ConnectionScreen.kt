@@ -1,0 +1,140 @@
+package ir.unilink.android.ui
+
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import ir.unilink.android.CertPrompt
+import ir.unilink.android.KeepAliveService
+import ir.unilink.android.Phase
+import ir.unilink.android.UniLinkApp
+
+@Composable
+fun ConnectionScreen(app: UniLinkApp) {
+    val st by app.engine.status.collectAsState()
+    val ctx = LocalContext.current
+    val tick = rememberResumeTick()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val hasLocation = remember(tick) {
+        ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+    }
+    val color = when (st.phase) {
+        Phase.Connected -> StatusGreen
+        Phase.WaitingRetry, Phase.NeedCertificate, Phase.AccountNeeded -> StatusAmber
+        Phase.Connecting -> AccentBlue
+        else -> StatusGrey
+    }
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        ScreenTitle("Connection")
+
+        Panel {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(12.dp).background(color, CircleShape))
+                Spacer(Modifier.width(10.dp))
+                Text(st.title, style = MaterialTheme.typography.titleLarge)
+            }
+            if (st.detail.isNotEmpty()) {
+                Text(st.detail, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            HorizontalDivider(Modifier.padding(vertical = 6.dp), color = MaterialTheme.colorScheme.outlineVariant)
+            InfoRow("Network", st.groupName ?: "—")
+            InfoRow("Account", st.accountName ?: "—")
+            InfoRow("Last keepalive", formatTime(st.lastKeepalive))
+            InfoRow("Next check", formatTime(st.nextCheck))
+        }
+
+        st.pendingCert?.let { prompt ->
+            CertificateCard(prompt) { app.engine.approveCertificate(prompt) }
+        }
+
+        if (!hasLocation) {
+            Panel {
+                Text("Wi-Fi name access", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "Android only reveals the Wi-Fi name (SSID) to apps with location permission. " +
+                        "Without it UniLink cannot tell that you are on UUWN. Location is never stored or sent anywhere.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedButton(onClick = { launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }) {
+                    Text("Allow location access")
+                }
+            }
+        }
+
+        Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = {
+                    KeepAliveService.start(ctx)
+                    app.engine.connectNow()
+                },
+                modifier = Modifier.weight(1f),
+            ) { Text("Connect") }
+            OutlinedButton(
+                onClick = { app.engine.pauseAndSignOut() },
+                modifier = Modifier.weight(1f),
+            ) { Text("Pause & sign out") }
+        }
+    }
+}
+
+@Composable
+private fun CertificateCard(p: CertPrompt, onTrust: () -> Unit) {
+    Panel {
+        Text(
+            if (p.changed) "Portal certificate changed" else "Review portal certificate",
+            style = MaterialTheme.typography.titleMedium,
+            color = StatusAmber,
+        )
+        Text(
+            "Compare this fingerprint with the certificate your browser shows on the normal university " +
+                "login page (or ask IT) before trusting it. Until you approve, no password is sent.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        InfoRow("Network", p.groupName)
+        Text(p.url, style = MaterialTheme.typography.bodySmall)
+        Text("SHA-256", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(p.fingerprint, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
+        if (p.subject.isNotBlank()) {
+            Text(p.subject, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Button(onClick = onTrust, modifier = Modifier.padding(top = 6.dp)) { Text("Trust this certificate") }
+    }
+}
