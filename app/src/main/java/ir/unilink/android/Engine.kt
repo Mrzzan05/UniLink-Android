@@ -71,6 +71,7 @@ class Engine(private val ctx: Context, private val store: Store) {
     @Volatile private var userRequested = false
     @Volatile private var retryAt = 0L
     private var lastSignature = ""
+    private var lastMatchNote = ""
     private var failures = 0
     private var nextKeepalive = 0L
     private var lastKeepalive = 0L
@@ -207,6 +208,11 @@ class Engine(private val ctx: Context, private val store: Store) {
         val ssid = t.ssid()
         val data = store.data.value
         val group = matchGroup(data.groups, ssid)
+        val matchNote = "SSID=${ssid ?: "hidden"} group=${group?.name ?: "none"}"
+        if (matchNote != lastMatchNote) {
+            lastMatchNote = matchNote
+            log("Wi-Fi detected: $matchNote")
+        }
         if (group == null) {
             dropSession(null)
             val why = if (ssid == null)
@@ -245,7 +251,12 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     private fun matchGroup(groups: List<NetworkGroup>, ssid: String?): NetworkGroup? {
         if (ssid != null) groups.firstOrNull { g -> g.ssids.any { it == ssid } }?.let { return it }
-        return groups.firstOrNull { it.portalOnly }
+        groups.firstOrNull { it.portalOnly }?.let { return it }
+        // Android sometimes hides the Wi-Fi name even with location permission. With a single
+        // configured network, try its portal anyway: nothing is sent without an approved
+        // (pinned) certificate, and an unreachable portal just fails and is retried later.
+        if (ssid == null && groups.size == 1) return groups[0]
+        return null
     }
 
     private fun dropSession(reason: String?) {
