@@ -1,9 +1,5 @@
 package ir.unilink.android.ui
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,30 +21,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import ir.unilink.android.CertPrompt
 import ir.unilink.android.KeepAliveService
 import ir.unilink.android.Phase
 import ir.unilink.android.UniLinkApp
 
 @Composable
-fun ConnectionScreen(app: UniLinkApp) {
+fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
     val st by app.engine.status.collectAsState()
     val ctx = LocalContext.current
-    val tick = rememberResumeTick()
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
-    val hasLocation = remember(tick) {
-        ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED
-    }
     val color = when (st.phase) {
         Phase.Connected -> StatusGreen
         Phase.WaitingRetry, Phase.NeedCertificate, Phase.AccountNeeded -> StatusAmber
@@ -85,19 +72,7 @@ fun ConnectionScreen(app: UniLinkApp) {
             CertificateCard(prompt) { app.engine.approveCertificate(prompt) }
         }
 
-        if (!hasLocation) {
-            Panel {
-                Text("Wi-Fi name access", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    "Android only reveals the Wi-Fi name (SSID) to apps with location permission. " +
-                        "Without it UniLink cannot tell that you are on UUWN. Location is never stored or sent anywhere.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                OutlinedButton(onClick = { launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }) {
-                    Text("Allow location access")
-                }
-            }
-        }
+        SetupChecklist(app, goToTab)
 
         Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(

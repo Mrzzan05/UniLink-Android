@@ -69,6 +69,8 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     @Volatile private var paused = false
     @Volatile private var userRequested = false
+    /** Set by Connect: skip the "is a session already live?" probe and sign in fresh. */
+    @Volatile private var forceFresh = false
     @Volatile private var retryAt = 0L
     private var lastSignature = ""
     private var lastMatchNote = ""
@@ -87,7 +89,7 @@ class Engine(private val ctx: Context, private val store: Store) {
     )
 
     private sealed class Outcome {
-        class LoggedIn(val account: Account, val url: String) : Outcome()
+        class LoggedIn(val account: Account, val url: String, val adopted: Boolean = false) : Outcome()
         class NeedCert(val prompt: CertPrompt) : Outcome()
         object NoAccounts : Outcome()
         class Retry(val reason: String, val minSeconds: Int) : Outcome()
@@ -123,6 +125,7 @@ class Engine(private val ctx: Context, private val store: Store) {
     fun connectNow() {
         paused = false
         userRequested = true
+        forceFresh = true
         failures = 0
         retryAt = 0L
         wake.trySend(Unit)
@@ -278,7 +281,10 @@ class Engine(private val ctx: Context, private val store: Store) {
                 retryAt = 0L
                 lastKeepalive = now
                 nextKeepalive = now + intervalMs(g)
-                log("Signed in with \"${o.account.name}\" on ${g.name}")
+                log(
+                    if (o.adopted) "Portal already has a live session for \"${o.account.name}\" — keeping it alive"
+                    else "Signed in with \"${o.account.name}\" on ${g.name}"
+                )
                 setConnected(g)
             }
             is Outcome.NeedCert -> {
@@ -328,6 +334,25 @@ class Engine(private val ctx: Context, private val store: Store) {
         val now = System.currentTimeMillis()
         val candidates = g.accounts.filter { it.isUsable(g, now) }
         if (candidates.isEmpty()) return Outcome.NoAccounts
+
+        // Before sending any password, ask the portal whether one of our accounts is already live
+        // (signed in by hand in a browser, or before the app was restarted). Only the user name is
+        // sent. Pressing Connect skips this and always signs in fresh.
+        val fresh = forceFresh
+        forceFresh = false
+        if (!fresh) {
+            probe@ for (acc in candidates) {
+                for (url in g.portalUrls) {
+                    when (val r = PortalClient(net, g.pins[url]).keepalive(url, acc.username, g.quotaPhrases)) {
+                        is PortalResult.Success -> return Outcome.LoggedIn(acc, url, adopted = true)
+                        is PortalResult.CertReview ->
+                            return Outcome.NeedCert(CertPrompt(g.id, g.name, url, r.fingerprint, r.subject, r.changed))
+                        is PortalResult.Failure -> break@probe
+                        else -> Unit
+                    }
+                }
+            }
+        }
 
         for (acc in candidates) {
             var result: PortalResult? = null

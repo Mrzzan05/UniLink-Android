@@ -1,23 +1,14 @@
-## UniLink Android v1.0.1
+## UniLink Android v1.1.0
 
-Early debug release of the Android version of UniLink: automatic sign-in and session keepalive for university Wi-Fi captive portals (Sophos / Cyberoam), tuned for Urmia University (UUWN).
-
-### What's new in 1.0.1
-- Fixed: the app could stay on "Waiting for campus Wi-Fi" because Android hid the Wi-Fi name (SSID). The name is now read through the modern network-callback API, and with a single configured network the app falls back to the portal instead of waiting forever.
-- Added: the Activity tab now logs what was detected (`Wi-Fi detected: SSID=… group=…`) to make problems easier to diagnose.
-
-### Highlights
-- Sign-in and keepalive pinned to the physical Wi-Fi interface, even while a VPN is on
-- Several accounts with automatic rotation when a monthly data allowance runs out
-- Portal HTTPS certificate pinning (SHA-256) with explicit user approval
-- Encrypted storage (Android Keystore), background service, start on boot
+### What's new
+- **First-run checklist** on the Connection tab: account, location, notifications, battery and certificate, each with a button that fixes it. It disappears once everything is ready.
+- **Quick Settings tile**: connect or pause and sign out from the notification shade. Add it from the edit panel of Quick Settings.
+- **Existing session detection**: if you already signed in by hand (or the app was restarted), UniLink keeps that session alive instead of signing in again. Only your user name is sent for the check. The **Connect** button always signs in fresh.
+- **Notification fix**: blocked notifications are now detected correctly and the Allow button opens the right settings page.
 
 ### Install
-1. Download `UniLink-v1.0.1.apk` below.
-2. Open it on your phone and allow "Install unknown apps" if asked.
-3. Allow Location (needed only to read the Wi-Fi name), Notifications and Unrestricted battery.
-4. Add an account on the Accounts tab, connect to UUWN, review and trust the portal certificate.
+Download `UniLink-v1.1.0.apk` below and install it over the previous version. Your accounts and settings are kept.
 
-Verify the download with `UniLink-v1.0.1.apk.sha256` if you like. This is a debug-signed build; updates install over earlier builds signed with the same key.
+Verify the download with `UniLink-v1.1.0.apk.sha256` if you like. This is a debug-signed build.
 
 > Unofficial project, not affiliated with any university or with Sophos. Use only accounts you are allowed to use.

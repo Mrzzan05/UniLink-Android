@@ -29,6 +29,8 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 | **Redirects refused** | The portal can't bounce your credentials to another address. |
 | **Encrypted storage** | Accounts and settings are encrypted with a key held in the Android Keystore and never leave the phone. |
 | **Runs in the background** | Foreground service with a persistent notification, optional wake lock, and start on boot. |
+| **Quick tile and checklist** | A Quick Settings tile to connect or pause, and a first-run checklist that walks you through permissions. |
+| **Keeps existing sessions** | If the portal already has a live session for your account, UniLink keeps it alive instead of signing in again. |
 | **Diagnostics** | In-memory activity log you can share. Passwords and student numbers are never logged. |
 
 ## Install
@@ -73,7 +75,7 @@ The APK is signed with the debug key committed in `app/debug.keystore`, so new b
 
 ## Roadmap
 
-Quick Settings tile · home-screen widget · import/export of network profiles · per-account usage notes · Persian interface
+Home-screen widget · import/export of network profiles · per-account usage notes · Persian interface · battery tuning
 
 ## Disclaimer
 

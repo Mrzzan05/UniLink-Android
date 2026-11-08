@@ -54,7 +54,7 @@ fun AppRoot(app: UniLinkApp) {
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (tab) {
-                0 -> ConnectionScreen(app)
+                0 -> ConnectionScreen(app) { tab = it }
                 1 -> AccountsScreen(app)
                 2 -> NetworksScreen(app)
                 3 -> ActivityScreen(app)

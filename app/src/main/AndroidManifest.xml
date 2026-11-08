@@ -40,6 +40,17 @@
                 android:value="Keeps a university captive-portal session alive over campus Wi-Fi" />
         </service>
 
+        <service
+            android:name=".UniLinkTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_stat"
+            android:label="UniLink"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".BootReceiver"
             android:exported="true">

@@ -106,11 +106,7 @@ fun SettingsScreen(app: UniLinkApp) {
     val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     val locLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
-    val notifGranted = remember(tick) {
-        Build.VERSION.SDK_INT < 33 ||
-            ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) ==
-            PackageManager.PERMISSION_GRANTED
-    }
+    val notifGranted = remember(tick) { notificationsEnabled(ctx) }
     val locGranted = remember(tick) {
         ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
@@ -150,7 +146,13 @@ fun SettingsScreen(app: UniLinkApp) {
             ) { locLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
             PermissionRow(
                 "Notifications", "Shows the status in the notification shade.", notifGranted,
-            ) { if (Build.VERSION.SDK_INT >= 33) notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
+            ) {
+                if (Build.VERSION.SDK_INT >= 33 &&
+                    ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED
+                ) notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                else openNotificationSettings(ctx)
+            }
             PermissionRow(
                 "Unrestricted battery", "Stops Android from pausing UniLink in the background.", batteryOk,
             ) {
