@@ -20,6 +20,10 @@
     <string name="conn_next_check">Next check</string>
     <string name="conn_connect">Connect</string>
     <string name="conn_pause">Pause &amp; sign out</string>
+    <string name="conn_keepalives">Keepalives</string>
+    <string name="conn_keepalives_value">%1$d ok · %2$d failed</string>
+    <string name="conn_late">Late wake-ups</string>
+    <string name="conn_late_value">%1$d (longest %2$d s)</string>
 
     <!-- Certificate card -->
     <string name="cert_changed_title">Portal certificate changed</string>
@@ -113,8 +117,10 @@
     <string name="set_auto_sub">Sign in as soon as a configured Wi-Fi network is detected.</string>
     <string name="set_boot_title">Start when the phone boots</string>
     <string name="set_boot_sub">Starts the background service after a restart.</string>
-    <string name="set_wake_title">Keep CPU and Wi-Fi awake</string>
-    <string name="set_wake_sub">Most reliable with the screen off. Uses more battery; turn off if the phone is rarely on campus Wi-Fi.</string>
+    <string name="set_wake_title">Keep CPU awake</string>
+    <string name="set_wake_sub">Keeps the processor running with the screen off so keepalive timers fire on time. The most reliable setting; uses more battery.</string>
+    <string name="set_wifi_title">Keep Wi-Fi at full power</string>
+    <string name="set_wifi_sub">Stops the Wi-Fi radio from power-saving with the screen off. If battery use is high, try turning this off first, then watch the Connection tab for failed or late keepalives.</string>
     <string name="set_perm_title">Permissions</string>
     <string name="set_loc_title">Location (reads the Wi-Fi name)</string>
     <string name="set_loc_sub">Needed to recognise UUWN.</string>

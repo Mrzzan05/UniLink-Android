@@ -41,9 +41,9 @@ class KeepAliveService : Service() {
         app.engine.start()
 
         scope.launch {
-            app.engine.status.combine(app.store.data) { st, d -> st to d.settings.holdWakeLock }
-                .collect { (st, hold) ->
-                    applyLocks(hold)
+            app.engine.status.combine(app.store.data) { st, d -> Triple(st, d.settings.holdWakeLock, d.settings.holdWifiLock) }
+                .collect { (st, cpu, wifi) ->
+                    applyLocks(cpu, wifi)
                     getSystemService(NotificationManager::class.java)
                         .notify(NOTIF_ID, buildNotification(st))
                 }
@@ -66,19 +66,22 @@ class KeepAliveService : Service() {
         super.onDestroy()
     }
 
-    private fun applyLocks(hold: Boolean) {
-        if (!hold) {
-            releaseLocks()
-            return
-        }
-        if (wakeLock == null) {
+    /** [cpu] keeps timers firing with the screen off; [wifi] keeps the Wi-Fi radio at full power. */
+    private fun applyLocks(cpu: Boolean, wifi: Boolean) {
+        if (!cpu) {
+            runCatching { wakeLock?.takeIf { it.isHeld }?.release() }
+            wakeLock = null
+        } else if (wakeLock == null) {
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "UniLink:keepalive").apply {
                 setReferenceCounted(false)
                 acquire()
             }
         }
-        if (wifiLock == null) {
+        if (!wifi) {
+            runCatching { wifiLock?.takeIf { it.isHeld }?.release() }
+            wifiLock = null
+        } else if (wifiLock == null) {
             val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
             @Suppress("DEPRECATION")
             wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "UniLink:wifi").apply {

@@ -37,6 +37,7 @@ import ir.unilink.android.UniLinkApp
 @Composable
 fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
     val st by app.engine.status.collectAsState()
+    val stats by app.engine.stats.collectAsState()
     val ctx = LocalContext.current
     val color = when (st.phase) {
         Phase.Connected -> StatusGreen
@@ -68,6 +69,16 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
             InfoRow(stringResource(R.string.conn_account), st.accountName ?: "—")
             InfoRow(stringResource(R.string.conn_last_keepalive), formatTime(st.lastKeepalive))
             InfoRow(stringResource(R.string.conn_next_check), formatTime(st.nextCheck))
+            InfoRow(
+                stringResource(R.string.conn_keepalives),
+                stringResource(R.string.conn_keepalives_value, stats.ok, stats.failed),
+            )
+            if (stats.late > 0) {
+                InfoRow(
+                    stringResource(R.string.conn_late),
+                    stringResource(R.string.conn_late_value, stats.late, stats.maxLateSec),
+                )
+            }
         }
 
         st.pendingCert?.let { prompt ->

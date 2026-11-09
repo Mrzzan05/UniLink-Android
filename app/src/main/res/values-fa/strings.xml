@@ -20,6 +20,10 @@
     <string name="conn_next_check">بررسی بعدی</string>
     <string name="conn_connect">اتصال</string>
     <string name="conn_pause">توقف و خروج</string>
+    <string name="conn_keepalives">نگه‌داشت نشست</string>
+    <string name="conn_keepalives_value">%1$d موفق · %2$d ناموفق</string>
+    <string name="conn_late">بیدار شدن دیرهنگام</string>
+    <string name="conn_late_value">%1$d بار (بیشینه %2$d ثانیه)</string>
 
     <!-- Certificate card -->
     <string name="cert_changed_title">گواهی پرتال تغییر کرده است</string>
@@ -113,8 +117,10 @@
     <string name="set_auto_sub">به‌محض شناسایی وای‌فای تنظیم‌شده، وارد می‌شود.</string>
     <string name="set_boot_title">شروع با روشن شدن گوشی</string>
     <string name="set_boot_sub">بعد از ری‌استارت، سرویس پس‌زمینه را اجرا می‌کند.</string>
-    <string name="set_wake_title">بیدار نگه داشتن پردازنده و وای‌فای</string>
-    <string name="set_wake_sub">با صفحهٔ خاموش مطمئن‌تر است ولی باتری بیشتری مصرف می‌کند. اگر گوشی کم‌تر به وای‌فای دانشگاه وصل است، خاموشش کن.</string>
+    <string name="set_wake_title">بیدار نگه داشتن پردازنده</string>
+    <string name="set_wake_sub">با صفحهٔ خاموش هم پردازنده را روشن نگه می‌دارد تا نگه‌داشت نشست سر وقت انجام شود. مطمئن‌ترین حالت است ولی باتری بیشتری مصرف می‌کند.</string>
+    <string name="set_wifi_title">وای‌فای با توان کامل</string>
+    <string name="set_wifi_sub">نمی‌گذارد با صفحهٔ خاموش، وای‌فای در حالت صرفه‌جویی برود. اگر مصرف باتری زیاد است اول این را خاموش کن و بعد در تب اتصال، تعداد نگه‌داشت‌های ناموفق یا دیرهنگام را ببین.</string>
     <string name="set_perm_title">اجازه‌ها</string>
     <string name="set_loc_title">موقعیت مکانی (برای خواندن نام وای‌فای)</string>
     <string name="set_loc_sub">برای شناسایی UUWN لازم است.</string>

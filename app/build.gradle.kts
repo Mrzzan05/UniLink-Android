@@ -12,8 +12,12 @@ android {
         applicationId = "ir.unilink.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.2.0"
+        versionCode = 5
+        versionName = "1.3.0"
+
+        // Drop translations of libraries we don't ship a UI for (the app itself is en + fa).
+        @Suppress("DEPRECATION")
+        resourceConfigurations += listOf("en", "fa")
     }
 
     // A fixed (committed) debug keystore keeps the APK signature identical across
@@ -29,7 +33,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 shrinks and optimizes code, and unused resources are removed: smaller, faster APK.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Signed with the committed key so new builds install over old ones (personal use).
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -59,4 +67,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // Installs the baseline profiles that ship with Compose, so the first launch is faster.
+    implementation("androidx.profileinstaller:profileinstaller:1.3.1")
 }

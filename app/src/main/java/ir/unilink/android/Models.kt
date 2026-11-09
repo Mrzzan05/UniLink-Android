@@ -45,6 +45,7 @@ data class Settings(
     val autoSignIn: Boolean = true,
     val startOnBoot: Boolean = true,
     val holdWakeLock: Boolean = true,
+    val holdWifiLock: Boolean = true,
 )
 
 data class AppData(
@@ -149,6 +150,7 @@ fun AppData.toJson(): JSONObject {
             .put("autoSignIn", settings.autoSignIn)
             .put("startOnBoot", settings.startOnBoot)
             .put("holdWakeLock", settings.holdWakeLock)
+            .put("holdWifiLock", settings.holdWifiLock)
     )
 }
 
@@ -161,6 +163,7 @@ fun appDataFromJson(o: JSONObject): AppData {
             autoSignIn = s.optBoolean("autoSignIn", true),
             startOnBoot = s.optBoolean("startOnBoot", true),
             holdWakeLock = s.optBoolean("holdWakeLock", true),
+            holdWifiLock = s.optBoolean("holdWifiLock", true),
         ),
     )
 }

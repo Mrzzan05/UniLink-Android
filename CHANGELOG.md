@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+- New: battery tools. The old single lock is now two switches in Settings: **Keep CPU awake** and **Keep Wi-Fi at full power**, so you can find the lightest setting that still keeps your session alive.
+- New: the Connection tab shows keepalive health (successful, failed, and late wake-ups), and the Activity log notes when a keepalive ran late because the phone was asleep.
+- Smaller and faster: release builds now use R8 code shrinking, unused resources are removed, only English and Persian translations are bundled, and baseline profiles are installed for a faster first launch.
+- The published APK is now the minified release build, signed with the same key as before, so it installs over earlier versions. An unminified debug APK is still produced as a fallback artifact.
+
 ## 1.2.0
 - New: Persian (فارسی) interface with right-to-left layout. It follows the phone's language by default; change it in Settings → Language (System / English / فارسی).
 - All screens, dialogs, status messages, the notification and the Quick Settings tile are translated. The Activity log stays in English on purpose so it is easy to share.

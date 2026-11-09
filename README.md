@@ -52,11 +52,20 @@ After that it signs in on its own whenever you're on campus Wi-Fi.
 - **Activity**: what happened and why, with a share button.
 - **Settings**: automatic sign-in, start on boot, wake lock, permission shortcuts.
 
+## Battery
+
+UniLink keeps a background service running, so it does use some battery. Settings has two switches to tune that:
+
+- **Keep CPU awake** keeps keepalive timers on time with the screen off. Most reliable, most power.
+- **Keep Wi-Fi at full power** stops the Wi-Fi radio from power-saving with the screen off.
+
+To find your lightest reliable setting: run a day with both on, a day with only Wi-Fi power off, and compare UniLink's share in phone **Settings → Battery**. The Connection tab counts successful, failed and late keepalives, so you can tell whether a change cost reliability.
+
 ## Build it yourself
 
 You don't need Android Studio: push the repo to GitHub and the **Build APK** workflow builds it for you.
 
-- Every push to `main` produces a debug APK under **Actions → latest run → Artifacts**.
+- Every push to `main` produces a minified release APK (`UniLink-release-apk`) and an unminified debug APK (`UniLink-debug-apk`, a fallback) under **Actions → latest run → Artifacts**.
 - Pushing a tag such as `v1.0.2` also publishes a **GitHub Release** with the APK and its SHA-256:
 
 ```bash
@@ -66,7 +75,7 @@ git push origin v1.0.2
 
 Locally: open the folder in Android Studio (JDK 17, Android SDK 35) and press Run.
 
-The APK is signed with the debug key committed in `app/debug.keystore`, so new builds install over old ones. This is fine for personal use, but it is not a Play Store release key.
+Both APKs are signed with the key committed in `app/debug.keystore`, so new builds install over old ones. This is fine for personal use, but it is not a Play Store release key.
 
 ## Status and limitations
 

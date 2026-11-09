@@ -26,6 +26,14 @@ import java.time.YearMonth
 import java.util.Date
 import java.util.Locale
 
+/** Keepalive health since the service started: used to judge battery settings with real numbers. */
+data class KeepaliveStats(
+    val ok: Int = 0,
+    val failed: Int = 0,
+    val late: Int = 0,
+    val maxLateSec: Long = 0L,
+)
+
 enum class Phase { Stopped, Paused, WaitingWifi, NeedCertificate, Connecting, Connected, WaitingRetry, AccountNeeded }
 
 data class CertPrompt(
@@ -61,6 +69,9 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     private val _status = MutableStateFlow(EngineStatus(title = str(R.string.st_stopped)))
     val status: StateFlow<EngineStatus> = _status.asStateFlow()
+
+    private val _stats = MutableStateFlow(KeepaliveStats())
+    val stats: StateFlow<KeepaliveStats> = _stats.asStateFlow()
 
     private val _log = MutableStateFlow<List<String>>(emptyList())
     val logLines: StateFlow<List<String>> = _log.asStateFlow()
@@ -106,6 +117,7 @@ class Engine(private val ctx: Context, private val store: Store) {
         val t = WifiTracker(ctx) { onNetworkEvent() }
         tracker = t
         paused = false
+        _stats.value = KeepaliveStats()
         t.start()
         job = scope.launch { loop(t) }
         log("Service started")
@@ -404,8 +416,15 @@ class Engine(private val ctx: Context, private val store: Store) {
             PortalClient(net, g.pins[s.url]).keepalive(s.url, s.username, g.quotaPhrases)
         }
         val now = System.currentTimeMillis()
+        // A keepalive that runs much later than scheduled means the CPU or radio was asleep.
+        val lateSec = (now - nextKeepalive) / 1000
+        if (lateSec > 45) {
+            log("Keepalive ran ${lateSec}s late (the phone was probably asleep)")
+            _stats.update { it.copy(late = it.late + 1, maxLateSec = maxOf(it.maxLateSec, lateSec)) }
+        }
         when (r) {
             is PortalResult.Success -> {
+                _stats.update { it.copy(ok = it.ok + 1) }
                 failures = 0
                 lastKeepalive = now
                 nextKeepalive = now + intervalMs(g)
@@ -435,6 +454,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                 retryAt = 0L
             }
             is PortalResult.Failure -> {
+                _stats.update { it.copy(failed = it.failed + 1) }
                 failures++
                 val wait = minOf(backoffSeconds(failures) * 1000L, intervalMs(g))
                 nextKeepalive = now + wait
