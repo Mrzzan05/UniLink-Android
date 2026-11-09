@@ -2,6 +2,9 @@ package ir.unilink.android.ui
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -47,9 +50,11 @@ fun AppRoot(app: UniLinkApp) {
     GlassBackdrop {
         Scaffold(
             containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onBackground,
             bottomBar = {
-                GlassSurface(strong = true, shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)) {
-                    NavigationBar(containerColor = Color.Transparent) {
+                Box(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
+                  GlassSurface(Modifier.fillMaxWidth(), strong = true, shape = RoundedCornerShape(28.dp)) {
+                    NavigationBar(containerColor = Color.Transparent, windowInsets = WindowInsets(0, 0, 0, 0)) {
                         tabs.forEachIndexed { i, t ->
                             val label = stringResource(t.label)
                             NavigationBarItem(
@@ -67,6 +72,7 @@ fun AppRoot(app: UniLinkApp) {
                             )
                         }
                     }
+                  }
                 }
             },
         ) { padding ->

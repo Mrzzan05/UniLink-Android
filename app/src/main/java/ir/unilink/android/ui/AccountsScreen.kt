@@ -161,6 +161,8 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
         FloatingActionButton(
             onClick = { adding = true },
             modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
         ) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.acc_add_cd)) }
     }
 
