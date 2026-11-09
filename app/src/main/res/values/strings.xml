@@ -166,4 +166,7 @@
     <string name="tile_retrying">Retrying</string>
     <string name="tile_paused">Paused</string>
     <string name="tile_tap_connect">Tap to connect</string>
+    <string name="widget_desc">Shows the sign-in status and connects or pauses with one tap.</string>
+    <string name="widget_connect">Connect</string>
+    <string name="widget_pause">Pause</string>
 </resources>

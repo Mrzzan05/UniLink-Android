@@ -166,4 +166,7 @@
     <string name="tile_retrying">تلاش دوباره</string>
     <string name="tile_paused">متوقف‌شده</string>
     <string name="tile_tap_connect">برای اتصال بزن</string>
+    <string name="widget_desc">وضعیت ورود را نشان می‌دهد و با یک ضربه وصل یا متوقف می‌کند.</string>
+    <string name="widget_connect">اتصال</string>
+    <string name="widget_pause">توقف</string>
 </resources>

@@ -12,8 +12,8 @@ android {
         applicationId = "ir.unilink.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.3.0"
+        versionCode = 6
+        versionName = "1.4.0"
 
         // Drop translations of libraries we don't ship a UI for (the app itself is en + fa).
         @Suppress("DEPRECATION")
@@ -48,6 +48,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+    }
+    // Do not embed the Google-signed dependency blob: F-Droid rejects it and it makes builds less reproducible.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
     buildFeatures {
         compose = true

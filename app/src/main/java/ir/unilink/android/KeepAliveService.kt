@@ -46,6 +46,7 @@ class KeepAliveService : Service() {
                     applyLocks(cpu, wifi)
                     getSystemService(NotificationManager::class.java)
                         .notify(NOTIF_ID, buildNotification(st))
+                    UniLinkWidget.refresh(this@KeepAliveService)
                 }
         }
     }
@@ -63,6 +64,7 @@ class KeepAliveService : Service() {
         scope.cancel()
         releaseLocks()
         app.engine.stop()
+        UniLinkWidget.refresh(this)
         super.onDestroy()
     }
 

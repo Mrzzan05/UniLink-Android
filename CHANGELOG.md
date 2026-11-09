@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0
+- New: glass-style interface with a soft gradient backdrop, frosted cards, a floating navigation bar and an animated status badge on the Connection tab. It follows the phone's light or dark theme.
+- New: small home-screen widget showing the status with a Connect / Pause button (plain RemoteViews, no extra library, so the APK stays small).
+- The project is now free software under **GPL-3.0-or-later** (see `LICENSE`) and carries F-Droid / IzzyOnDroid metadata in `fastlane/`.
+- Build: the dependency-info blob is no longer embedded in the APK (required by F-Droid), and CI uploads the R8 `mapping.txt` as an artifact.
+
 ## 1.3.0
 - New: battery tools. The old single lock is now two switches in Settings: **Keep CPU awake** and **Keep Wi-Fi at full power**, so you can find the lightest setting that still keeps your session alive.
 - New: the Connection tab shows keepalive health (successful, failed, and late wake-ups), and the Activity log notes when a keepalive ran late because the phone was asleep.

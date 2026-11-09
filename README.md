@@ -6,6 +6,7 @@
 
 [![Build APK](../../actions/workflows/build-apk.yml/badge.svg)](../../actions/workflows/build-apk.yml)
 ![Platform](https://img.shields.io/badge/platform-Android%208.0%2B-3DDC84?logo=android&logoColor=white)
+![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
 
 [**Download the latest APK**](../../releases/latest) · [فارسی](README_FA.md) · [Changelog](CHANGELOG.md)
@@ -30,7 +31,8 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 | **Encrypted storage** | Accounts and settings are encrypted with a key held in the Android Keystore and never leave the phone. |
 | **Runs in the background** | Foreground service with a persistent notification, optional wake lock, and start on boot. |
 | **Persian and English** | Full Persian interface with right-to-left layout, or English. Follows the phone's language, or choose in Settings. |
-| **Quick tile and checklist** | A Quick Settings tile to connect or pause, and a first-run checklist that walks you through permissions. |
+| **Quick tile, widget and checklist** | A Quick Settings tile and a small home-screen widget to connect or pause, and a first-run checklist that walks you through permissions. |
+| **Glass interface** | Frosted-glass cards over a gradient backdrop, in light and dark themes that follow the phone. |
 | **Keeps existing sessions** | If the portal already has a live session for your account, UniLink keeps it alive instead of signing in again. |
 | **Diagnostics** | In-memory activity log you can share. Passwords and student numbers are never logged. |
 
@@ -85,7 +87,11 @@ Both APKs are signed with the key committed in `app/debug.keystore`, so new buil
 
 ## Roadmap
 
-Home-screen widget · import/export of network profiles · per-account usage notes · battery tuning
+Import/export of network profiles · per-account usage notes · battery tuning
+
+## License
+
+UniLink is free software, licensed under the **GNU GPL v3 or later**. See [LICENSE](LICENSE).
 
 ## Disclaimer
 

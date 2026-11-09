@@ -1,7 +1,30 @@
 package ir.unilink.android.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,16 +78,20 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
     ) {
         ScreenTitle(stringResource(R.string.tab_connection))
 
+        StatusHero(
+            color = color,
+            icon = when (st.phase) {
+                Phase.Connected -> Icons.Default.Check
+                Phase.Connecting, Phase.WaitingRetry -> Icons.Default.Refresh
+                Phase.NeedCertificate, Phase.AccountNeeded -> Icons.Default.Warning
+                else -> Icons.Default.Info
+            },
+            pulsing = st.phase == Phase.Connecting || st.phase == Phase.WaitingRetry,
+            title = st.title,
+            detail = st.detail,
+        )
+
         Panel {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(12.dp).background(color, CircleShape))
-                Spacer(Modifier.width(10.dp))
-                Text(st.title, style = MaterialTheme.typography.titleLarge)
-            }
-            if (st.detail.isNotEmpty()) {
-                Text(st.detail, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            HorizontalDivider(Modifier.padding(vertical = 6.dp), color = MaterialTheme.colorScheme.outlineVariant)
             InfoRow(stringResource(R.string.conn_network), st.groupName ?: "—")
             InfoRow(stringResource(R.string.conn_account), st.accountName ?: "—")
             InfoRow(stringResource(R.string.conn_last_keepalive), formatTime(st.lastKeepalive))
@@ -93,11 +120,13 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
                     KeepAliveService.start(ctx)
                     app.engine.connectNow()
                 },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RoundedCornerShape(26.dp),
             ) { Text(stringResource(R.string.conn_connect)) }
             OutlinedButton(
                 onClick = { app.engine.pauseAndSignOut() },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RoundedCornerShape(26.dp),
             ) { Text(stringResource(R.string.conn_pause)) }
         }
     }
@@ -128,6 +157,54 @@ private fun CertificateCard(p: CertPrompt, onTrust: () -> Unit) {
         }
         Button(onClick = onTrust, modifier = Modifier.padding(top = 6.dp)) {
             Text(stringResource(R.string.cert_trust))
+        }
+    }
+}
+
+/** Big status badge: a glowing ring in the status colour that pulses while work is in progress. */
+@Composable
+private fun StatusHero(color: Color, icon: ImageVector, pulsing: Boolean, title: String, detail: String) {
+    val transition = rememberInfiniteTransition(label = "pulse")
+    val pulse by transition.animateFloat(
+        initialValue = 0.55f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1100), RepeatMode.Reverse),
+        label = "pulseAlpha",
+    )
+    val glow = if (pulsing) pulse else 1f
+    GlassSurface(Modifier.fillMaxWidth(), strong = true) {
+        Column(
+            Modifier.fillMaxWidth().padding(vertical = 24.dp, horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(
+                Modifier
+                    .size(96.dp)
+                    .drawBehind {
+                        val c = Offset(size.width / 2, size.height / 2)
+                        val r = size.minDimension * 0.95f
+                        drawCircle(
+                            Brush.radialGradient(listOf(color.copy(alpha = 0.40f * glow), Color.Transparent), c, r),
+                            r, c,
+                        )
+                    }
+                    .padding(14.dp)
+                    .background(color.copy(alpha = 0.18f), CircleShape)
+                    .border(2.dp, color.copy(alpha = 0.55f + 0.45f * glow), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(34.dp))
+            }
+            Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+            if (detail.isNotEmpty()) {
+                Text(
+                    detail,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         }
     }
 }

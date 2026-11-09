@@ -1,14 +1,16 @@
 package ir.unilink.android.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,6 +21,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -34,12 +40,52 @@ fun ScreenTitle(text: String) {
     Text(text, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
 }
 
+/** Soft gradient backdrop with two colour blobs; the glass panels sit on top of it. */
+@Composable
+fun GlassBackdrop(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val g = LocalGlass.current
+    Box(
+        modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(g.backdropTop, g.backdropBottom)))
+            .drawBehind {
+                val a = Offset(size.width * 0.15f, size.height * 0.12f)
+                val b = Offset(size.width * 0.9f, size.height * 0.62f)
+                val ra = size.maxDimension * 0.55f
+                val rb = size.maxDimension * 0.5f
+                val strength = if (g.dark) 0.5f else 0.6f
+                drawCircle(
+                    Brush.radialGradient(listOf(g.blobA.copy(alpha = strength), Color.Transparent), a, ra),
+                    ra, a,
+                )
+                drawCircle(
+                    Brush.radialGradient(listOf(g.blobB.copy(alpha = strength * 0.8f), Color.Transparent), b, rb),
+                    rb, b,
+                )
+            },
+    ) { content() }
+}
+
+/** A frosted-glass surface: translucent fill and a bright top-left edge. */
+@Composable
+fun GlassSurface(
+    modifier: Modifier = Modifier,
+    strong: Boolean = false,
+    shape: RoundedCornerShape = RoundedCornerShape(24.dp),
+    content: @Composable () -> Unit,
+) {
+    val g = LocalGlass.current
+    Box(
+        modifier
+            .clip(shape)
+            .background(if (strong) g.glassFillStrong else g.glassFill)
+            .border(1.dp, Brush.linearGradient(listOf(g.glassEdgeHi, g.glassEdgeLo)), shape),
+    ) { content() }
+}
+
 @Composable
 fun Panel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-    ) {
+    GlassSurface(modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp), content = content)
     }
 }
