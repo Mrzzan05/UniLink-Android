@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tabs -->
+    <string name="tab_connection">Connection</string>
+    <string name="tab_accounts">Accounts</string>
+    <string name="tab_networks">Networks</string>
+    <string name="tab_activity">Activity</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Common -->
+    <string name="common_save">Save</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_allow">Allow</string>
+
+    <!-- Connection -->
+    <string name="conn_network">Network</string>
+    <string name="conn_account">Account</string>
+    <string name="conn_last_keepalive">Last keepalive</string>
+    <string name="conn_next_check">Next check</string>
+    <string name="conn_connect">Connect</string>
+    <string name="conn_pause">Pause &amp; sign out</string>
+
+    <!-- Certificate card -->
+    <string name="cert_changed_title">Portal certificate changed</string>
+    <string name="cert_review_title">Review portal certificate</string>
+    <string name="cert_body">Compare this fingerprint with the certificate your browser shows on the normal university login page (or ask IT) before trusting it. Until you approve, no password is sent.</string>
+    <string name="cert_network">Network</string>
+    <string name="cert_sha256">SHA-256</string>
+    <string name="cert_trust">Trust this certificate</string>
+
+    <!-- Setup checklist -->
+    <string name="setup_title">Get ready (%1$d/%2$d)</string>
+    <string name="setup_account_title">Add an account</string>
+    <string name="setup_account_hint">Student number and password, on the Accounts tab.</string>
+    <string name="setup_open_accounts">Open Accounts</string>
+    <string name="setup_location_title">Allow location</string>
+    <string name="setup_location_hint">Android only shows the Wi-Fi name to apps with this. It is never stored or sent.</string>
+    <string name="setup_notif_title">Allow notifications</string>
+    <string name="setup_notif_hint">Shows the connection status in the notification shade.</string>
+    <string name="setup_battery_title">Unrestricted battery</string>
+    <string name="setup_battery_hint">Stops Android from pausing UniLink while the screen is off.</string>
+    <string name="setup_cert_title">Trust the portal certificate</string>
+    <string name="setup_cert_hint">Appears here the first time you are on campus Wi-Fi. Nothing is sent before you approve it.</string>
+
+    <!-- Accounts -->
+    <string name="acc_no_groups">No network groups yet. Add one on the Networks tab first.</string>
+    <string name="acc_none">No accounts in \"%1$s\". Tap + to add one.</string>
+    <string name="acc_add_cd">Add account</string>
+    <string name="acc_more_cd">More</string>
+    <string name="tag_default">Default</string>
+    <string name="tag_in_use">In use</string>
+    <string name="tag_disabled">Disabled</string>
+    <string name="tag_password_rejected">Password rejected</string>
+    <string name="tag_quota_used">Quota used this month</string>
+    <string name="menu_edit">Edit</string>
+    <string name="menu_set_default">Set as default</string>
+    <string name="menu_move_up">Move up</string>
+    <string name="menu_move_down">Move down</string>
+    <string name="menu_disable">Disable</string>
+    <string name="menu_enable">Enable</string>
+    <string name="menu_clear_block">Clear account block</string>
+    <string name="acc_dialog_add">Add account</string>
+    <string name="acc_dialog_edit">Edit account</string>
+    <string name="acc_field_name">Name (optional)</string>
+    <string name="acc_field_user">Student number</string>
+    <string name="acc_field_pass">Password</string>
+    <string name="acc_show">Show</string>
+    <string name="acc_hide">Hide</string>
+    <string name="acc_delete_title">Delete account?</string>
+    <string name="acc_delete_text">\"%1$s\" will be removed from %2$s.</string>
+
+    <!-- Networks -->
+    <string name="net_wifi_names">Wi-Fi names</string>
+    <string name="net_accounts">Accounts</string>
+    <string name="net_keepalive">Keepalive</string>
+    <string name="net_seconds">%1$d s</string>
+    <string name="net_timezone">Time zone</string>
+    <string name="net_pinned">Certificate pinned</string>
+    <string name="net_not_pinned">Not pinned</string>
+    <string name="net_portal_only_note">Also matches by reachable, pinned portal</string>
+    <string name="net_forget_certs">Forget certificates</string>
+    <string name="net_add_cd">Add network group</string>
+    <string name="net_dialog_add">Add network group</string>
+    <string name="net_dialog_edit">Edit network group</string>
+    <string name="net_field_name">Name</string>
+    <string name="net_field_ssids">Wi-Fi names (one per line, exact match)</string>
+    <string name="net_field_urls">Portal URLs (https, one per line)</string>
+    <string name="net_portal_only_check">Also match by a reachable, pinned portal (when the Wi-Fi name is unknown)</string>
+    <string name="net_field_keepalive">Keepalive seconds (30–180)</string>
+    <string name="net_field_tz">Time zone (for monthly reset)</string>
+    <string name="net_field_phrases">Extra quota-exceeded phrases (one per line)</string>
+    <string name="net_phrases_support">Optional. The university\'s standard message is built in.</string>
+    <string name="err_name">Give the network a name.</string>
+    <string name="err_url_empty">Add at least one portal URL.</string>
+    <string name="err_url_https">Portal URLs must be valid https:// addresses.</string>
+    <string name="err_keepalive">Keepalive must be between 30 and 180 seconds.</string>
+    <string name="err_tz">Unknown time zone. Example: Asia/Tehran</string>
+    <string name="err_ssid">Add a Wi-Fi name, or enable portal-only matching.</string>
+    <string name="net_delete_title">Delete network group?</string>
+    <string name="net_delete_text">\"%1$s\" and its %2$d account(s) will be removed from this phone.</string>
+
+    <!-- Activity -->
+    <string name="act_share_log">Share log</string>
+    <string name="act_clear">Clear</string>
+    <string name="act_note">Passwords and student numbers are never written to this log. It is kept in memory only. Log lines are always in English so they are easy to share.</string>
+    <string name="act_empty">Nothing yet.</string>
+    <string name="act_share_subject">UniLink diagnostic log</string>
+    <string name="act_share_chooser">Share log</string>
+
+    <!-- Settings -->
+    <string name="set_auto_title">Automatic sign-in</string>
+    <string name="set_auto_sub">Sign in as soon as a configured Wi-Fi network is detected.</string>
+    <string name="set_boot_title">Start when the phone boots</string>
+    <string name="set_boot_sub">Starts the background service after a restart.</string>
+    <string name="set_wake_title">Keep CPU and Wi-Fi awake</string>
+    <string name="set_wake_sub">Most reliable with the screen off. Uses more battery; turn off if the phone is rarely on campus Wi-Fi.</string>
+    <string name="set_perm_title">Permissions</string>
+    <string name="set_loc_title">Location (reads the Wi-Fi name)</string>
+    <string name="set_loc_sub">Needed to recognise UUWN.</string>
+    <string name="set_notif_title">Notifications</string>
+    <string name="set_notif_sub">Shows the status in the notification shade.</string>
+    <string name="set_batt_title">Unrestricted battery</string>
+    <string name="set_batt_sub">Stops Android from pausing UniLink in the background.</string>
+    <string name="set_ok">OK</string>
+    <string name="set_lang_title">Language</string>
+    <string name="set_lang_system">System</string>
+    <string name="set_lang_en">English</string>
+    <string name="set_lang_fa">فارسی</string>
+    <string name="set_about_title">About</string>
+    <string name="set_about_text">UniLink for Android %1$s. Accounts and settings are encrypted with a key held in the Android Keystore and never leave this phone. Only add accounts you are allowed to use.</string>
+    <string name="set_exit">Exit UniLink</string>
+
+    <!-- Engine status -->
+    <string name="st_stopped">Stopped</string>
+    <string name="st_paused">Paused</string>
+    <string name="st_paused_d">Signed out. Tap Connect to resume.</string>
+    <string name="st_wait_wifi">Waiting for campus Wi-Fi</string>
+    <string name="st_wait_wifi_none">No Wi-Fi connection with an IP address yet.</string>
+    <string name="st_wait_wifi_hidden">The Wi-Fi name is hidden by Android. Allow location access (see the checklist on the Connection tab), or turn on portal-only matching for a network.</string>
+    <string name="st_wait_wifi_unknown">\"%1$s\" is not in any configured network.</string>
+    <string name="st_auto_off">Automatic sign-in is off</string>
+    <string name="st_auto_off_d">Tap Connect to sign in to %1$s.</string>
+    <string name="st_signing_in">Signing in…</string>
+    <string name="st_review_cert">Review certificate</string>
+    <string name="st_cert_changed_d">The portal certificate changed. No password has been sent.</string>
+    <string name="st_cert_new_d">Approve the portal certificate once. No password has been sent.</string>
+    <string name="st_account_needed">Account needed</string>
+    <string name="st_account_needed_d">No usable account in %1$s: none added, all disabled, quota used up or password rejected.</string>
+    <string name="st_wait_retry">Waiting to retry</string>
+    <string name="st_connected">Connected</string>
+    <string name="st_connected_d">Signed in as \"%1$s\" on %2$s.</string>
+
+    <!-- Notification and tile -->
+    <string name="notif_channel_name">UniLink status</string>
+    <string name="notif_channel_desc">Shows the current university Wi-Fi sign-in status</string>
+    <string name="notif_exit">Exit</string>
+    <string name="tile_signing_in">Signing in…</string>
+    <string name="tile_review_cert">Review certificate</string>
+    <string name="tile_retrying">Retrying</string>
+    <string name="tile_paused">Paused</string>
+    <string name="tile_tap_connect">Tap to connect</string>
+</resources>

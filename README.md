@@ -29,6 +29,7 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 | **Redirects refused** | The portal can't bounce your credentials to another address. |
 | **Encrypted storage** | Accounts and settings are encrypted with a key held in the Android Keystore and never leave the phone. |
 | **Runs in the background** | Foreground service with a persistent notification, optional wake lock, and start on boot. |
+| **Persian and English** | Full Persian interface with right-to-left layout, or English. Follows the phone's language, or choose in Settings. |
 | **Quick tile and checklist** | A Quick Settings tile to connect or pause, and a first-run checklist that walks you through permissions. |
 | **Keeps existing sessions** | If the portal already has a live session for your account, UniLink keeps it alive instead of signing in again. |
 | **Diagnostics** | In-memory activity log you can share. Passwords and student numbers are never logged. |
@@ -71,11 +72,11 @@ The APK is signed with the debug key committed in `app/debug.keystore`, so new b
 
 - Early release. The portal protocol was reimplemented from the Windows version's documented behavior, so portals that reply differently may need small adjustments. If something doesn't work, open an issue with the **Share log** output from the Activity tab.
 - If a VPN's kill switch blocks the local network, enable "Allow LAN" in that VPN app.
-- The interface is English only for now.
+- Activity log lines are English only (by design, so they are easy to share).
 
 ## Roadmap
 
-Home-screen widget · import/export of network profiles · per-account usage notes · Persian interface · battery tuning
+Home-screen widget · import/export of network profiles · per-account usage notes · battery tuning
 
 ## Disclaimer
 

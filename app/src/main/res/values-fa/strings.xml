@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tabs -->
+    <string name="tab_connection">اتصال</string>
+    <string name="tab_accounts">حساب‌ها</string>
+    <string name="tab_networks">شبکه‌ها</string>
+    <string name="tab_activity">گزارش</string>
+    <string name="tab_settings">تنظیمات</string>
+
+    <!-- Common -->
+    <string name="common_save">ذخیره</string>
+    <string name="common_cancel">انصراف</string>
+    <string name="common_delete">حذف</string>
+    <string name="common_allow">اجازه</string>
+
+    <!-- Connection -->
+    <string name="conn_network">شبکه</string>
+    <string name="conn_account">حساب</string>
+    <string name="conn_last_keepalive">آخرین نگه‌داشت نشست</string>
+    <string name="conn_next_check">بررسی بعدی</string>
+    <string name="conn_connect">اتصال</string>
+    <string name="conn_pause">توقف و خروج</string>
+
+    <!-- Certificate card -->
+    <string name="cert_changed_title">گواهی پرتال تغییر کرده است</string>
+    <string name="cert_review_title">بررسی گواهی پرتال</string>
+    <string name="cert_body">پیش از اعتماد، این اثر انگشت را با گواهی‌ای که مرورگر در صفحهٔ معمول ورود دانشگاه نشان می‌دهد مقایسه کن (یا از بخش فناوری اطلاعات بپرس). تا تأیید نکنی هیچ رمزی ارسال نمی‌شود.</string>
+    <string name="cert_network">شبکه</string>
+    <string name="cert_sha256">SHA-256</string>
+    <string name="cert_trust">به این گواهی اعتماد می‌کنم</string>
+
+    <!-- Setup checklist -->
+    <string name="setup_title">آماده‌سازی (%1$d از %2$d)</string>
+    <string name="setup_account_title">افزودن حساب</string>
+    <string name="setup_account_hint">شمارهٔ دانشجویی و رمز را در تب حساب‌ها وارد کن.</string>
+    <string name="setup_open_accounts">باز کردن حساب‌ها</string>
+    <string name="setup_location_title">اجازهٔ موقعیت مکانی</string>
+    <string name="setup_location_hint">اندروید نام وای‌فای را فقط به برنامه‌هایی می‌دهد که این اجازه را دارند. موقعیت هرگز ذخیره یا ارسال نمی‌شود.</string>
+    <string name="setup_notif_title">اجازهٔ اعلان‌ها</string>
+    <string name="setup_notif_hint">وضعیت اتصال را در پردهٔ اعلان‌ها نشان می‌دهد.</string>
+    <string name="setup_battery_title">باتری بدون محدودیت</string>
+    <string name="setup_battery_hint">نمی‌گذارد اندروید هنگام خاموش بودن صفحه، UniLink را متوقف کند.</string>
+    <string name="setup_cert_title">اعتماد به گواهی پرتال</string>
+    <string name="setup_cert_hint">اولین باری که به وای‌فای دانشگاه وصل شوی همین‌جا ظاهر می‌شود. تا تأیید نکنی چیزی ارسال نمی‌شود.</string>
+
+    <!-- Accounts -->
+    <string name="acc_no_groups">هنوز گروه شبکه‌ای نیست. اول در تب شبکه‌ها یکی اضافه کن.</string>
+    <string name="acc_none">در «%1$s» حسابی نیست. برای افزودن، + را بزن.</string>
+    <string name="acc_add_cd">افزودن حساب</string>
+    <string name="acc_more_cd">بیشتر</string>
+    <string name="tag_default">پیش‌فرض</string>
+    <string name="tag_in_use">در حال استفاده</string>
+    <string name="tag_disabled">غیرفعال</string>
+    <string name="tag_password_rejected">رمز پذیرفته نشد</string>
+    <string name="tag_quota_used">حجم این ماه تمام شده</string>
+    <string name="menu_edit">ویرایش</string>
+    <string name="menu_set_default">پیش‌فرض کردن</string>
+    <string name="menu_move_up">انتقال به بالا</string>
+    <string name="menu_move_down">انتقال به پایین</string>
+    <string name="menu_disable">غیرفعال کردن</string>
+    <string name="menu_enable">فعال کردن</string>
+    <string name="menu_clear_block">رفع انسداد حساب</string>
+    <string name="acc_dialog_add">افزودن حساب</string>
+    <string name="acc_dialog_edit">ویرایش حساب</string>
+    <string name="acc_field_name">نام (اختیاری)</string>
+    <string name="acc_field_user">شمارهٔ دانشجویی</string>
+    <string name="acc_field_pass">رمز عبور</string>
+    <string name="acc_show">نمایش</string>
+    <string name="acc_hide">پنهان</string>
+    <string name="acc_delete_title">حساب حذف شود؟</string>
+    <string name="acc_delete_text">«%1$s» از %2$s حذف می‌شود.</string>
+
+    <!-- Networks -->
+    <string name="net_wifi_names">نام وای‌فای</string>
+    <string name="net_accounts">حساب‌ها</string>
+    <string name="net_keepalive">نگه‌داشت نشست</string>
+    <string name="net_seconds">%1$d ثانیه</string>
+    <string name="net_timezone">منطقهٔ زمانی</string>
+    <string name="net_pinned">گواهی پین شده</string>
+    <string name="net_not_pinned">پین نشده</string>
+    <string name="net_portal_only_note">با پرتال در دسترس و پین‌شده هم شناسایی می‌شود</string>
+    <string name="net_forget_certs">فراموش کردن گواهی‌ها</string>
+    <string name="net_add_cd">افزودن گروه شبکه</string>
+    <string name="net_dialog_add">افزودن گروه شبکه</string>
+    <string name="net_dialog_edit">ویرایش گروه شبکه</string>
+    <string name="net_field_name">نام</string>
+    <string name="net_field_ssids">نام وای‌فای (هر خط یکی، دقیقاً مطابق)</string>
+    <string name="net_field_urls">آدرس پرتال (https، هر خط یکی)</string>
+    <string name="net_portal_only_check">با پرتال در دسترس و پین‌شده هم شناسایی شود (وقتی نام وای‌فای معلوم نیست)</string>
+    <string name="net_field_keepalive">ثانیه‌های نگه‌داشت نشست (۳۰ تا ۱۸۰)</string>
+    <string name="net_field_tz">منطقهٔ زمانی (برای بازنشانی ماهانه)</string>
+    <string name="net_field_phrases">عبارت‌های اضافهٔ اتمام حجم (هر خط یکی)</string>
+    <string name="net_phrases_support">اختیاری. پیام استاندارد دانشگاه از قبل داخل برنامه هست.</string>
+    <string name="err_name">برای شبکه یک نام بگذار.</string>
+    <string name="err_url_empty">دست‌کم یک آدرس پرتال اضافه کن.</string>
+    <string name="err_url_https">آدرس پرتال باید یک آدرس معتبر https:// باشد.</string>
+    <string name="err_keepalive">بازهٔ نگه‌داشت نشست باید بین ۳۰ تا ۱۸۰ ثانیه باشد.</string>
+    <string name="err_tz">منطقهٔ زمانی ناشناخته است. مثال: Asia/Tehran</string>
+    <string name="err_ssid">یک نام وای‌فای اضافه کن، یا شناسایی با پرتال را روشن کن.</string>
+    <string name="net_delete_title">گروه شبکه حذف شود؟</string>
+    <string name="net_delete_text">«%1$s» و %2$d حساب آن از این گوشی حذف می‌شود.</string>
+
+    <!-- Activity -->
+    <string name="act_share_log">اشتراک‌گذاری گزارش</string>
+    <string name="act_clear">پاک کردن</string>
+    <string name="act_note">رمز و شمارهٔ دانشجویی هرگز در این گزارش نوشته نمی‌شود و فقط در حافظه می‌ماند. خطوط گزارش همیشه انگلیسی‌اند تا اشتراک‌گذاری و عیب‌یابی ساده باشد.</string>
+    <string name="act_empty">هنوز چیزی ثبت نشده.</string>
+    <string name="act_share_subject">گزارش عیب‌یابی UniLink</string>
+    <string name="act_share_chooser">اشتراک‌گذاری گزارش</string>
+
+    <!-- Settings -->
+    <string name="set_auto_title">ورود خودکار</string>
+    <string name="set_auto_sub">به‌محض شناسایی وای‌فای تنظیم‌شده، وارد می‌شود.</string>
+    <string name="set_boot_title">شروع با روشن شدن گوشی</string>
+    <string name="set_boot_sub">بعد از ری‌استارت، سرویس پس‌زمینه را اجرا می‌کند.</string>
+    <string name="set_wake_title">بیدار نگه داشتن پردازنده و وای‌فای</string>
+    <string name="set_wake_sub">با صفحهٔ خاموش مطمئن‌تر است ولی باتری بیشتری مصرف می‌کند. اگر گوشی کم‌تر به وای‌فای دانشگاه وصل است، خاموشش کن.</string>
+    <string name="set_perm_title">اجازه‌ها</string>
+    <string name="set_loc_title">موقعیت مکانی (برای خواندن نام وای‌فای)</string>
+    <string name="set_loc_sub">برای شناسایی UUWN لازم است.</string>
+    <string name="set_notif_title">اعلان‌ها</string>
+    <string name="set_notif_sub">وضعیت را در پردهٔ اعلان‌ها نشان می‌دهد.</string>
+    <string name="set_batt_title">باتری بدون محدودیت</string>
+    <string name="set_batt_sub">نمی‌گذارد اندروید برنامه را در پس‌زمینه متوقف کند.</string>
+    <string name="set_ok">تأیید شد</string>
+    <string name="set_lang_title">زبان</string>
+    <string name="set_lang_system">سیستم</string>
+    <string name="set_lang_en">English</string>
+    <string name="set_lang_fa">فارسی</string>
+    <string name="set_about_title">دربارهٔ برنامه</string>
+    <string name="set_about_text">UniLink برای اندروید، نسخهٔ %1$s. حساب‌ها و تنظیمات با کلیدی در Android Keystore رمزگذاری می‌شوند و از این گوشی بیرون نمی‌روند. فقط حساب‌هایی را اضافه کن که اجازهٔ استفاده‌شان را داری.</string>
+    <string name="set_exit">خروج از UniLink</string>
+
+    <!-- Engine status -->
+    <string name="st_stopped">متوقف</string>
+    <string name="st_paused">متوقف‌شده</string>
+    <string name="st_paused_d">از حساب خارج شدی. برای ادامه، اتصال را بزن.</string>
+    <string name="st_wait_wifi">در انتظار وای‌فای دانشگاه</string>
+    <string name="st_wait_wifi_none">هنوز به وای‌فایی با آدرس IP وصل نیستی.</string>
+    <string name="st_wait_wifi_hidden">اندروید نام وای‌فای را پنهان کرده است. اجازهٔ موقعیت مکانی را بده (چک‌لیست تب اتصال)، یا برای یک شبکه شناسایی با پرتال را روشن کن.</string>
+    <string name="st_wait_wifi_unknown">«%1$s» در هیچ‌یک از شبکه‌های تنظیم‌شده نیست.</string>
+    <string name="st_auto_off">ورود خودکار خاموش است</string>
+    <string name="st_auto_off_d">برای ورود به %1$s، اتصال را بزن.</string>
+    <string name="st_signing_in">در حال ورود…</string>
+    <string name="st_review_cert">بررسی گواهی</string>
+    <string name="st_cert_changed_d">گواهی پرتال تغییر کرده است. هیچ رمزی ارسال نشده.</string>
+    <string name="st_cert_new_d">گواهی پرتال را یک‌بار تأیید کن. هیچ رمزی ارسال نشده.</string>
+    <string name="st_account_needed">حساب لازم است</string>
+    <string name="st_account_needed_d">در %1$s حساب قابل‌استفاده‌ای نیست: یا اضافه نشده، یا همه غیرفعال‌اند، حجمشان تمام شده یا رمزشان پذیرفته نشده.</string>
+    <string name="st_wait_retry">در انتظار تلاش دوباره</string>
+    <string name="st_connected">متصل</string>
+    <string name="st_connected_d">با «%1$s» در %2$s وارد شده‌ای.</string>
+
+    <!-- Notification and tile -->
+    <string name="notif_channel_name">وضعیت UniLink</string>
+    <string name="notif_channel_desc">وضعیت فعلی ورود به وای‌فای دانشگاه را نشان می‌دهد</string>
+    <string name="notif_exit">خروج</string>
+    <string name="tile_signing_in">در حال ورود…</string>
+    <string name="tile_review_cert">بررسی گواهی</string>
+    <string name="tile_retrying">تلاش دوباره</string>
+    <string name="tile_paused">متوقف‌شده</string>
+    <string name="tile_tap_connect">برای اتصال بزن</string>
+</resources>

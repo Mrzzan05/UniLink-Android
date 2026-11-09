@@ -4,6 +4,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -34,12 +35,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import ir.unilink.android.Account
 import ir.unilink.android.NetworkGroup
+import ir.unilink.android.R
 import ir.unilink.android.UniLinkApp
 import ir.unilink.android.isExhaustedNow
 import ir.unilink.android.moved
@@ -53,10 +56,10 @@ fun AccountsScreen(app: UniLinkApp) {
     val group = data.groups.firstOrNull { it.id == selectedId } ?: data.groups.firstOrNull()
 
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 16.dp)) {
-        ScreenTitle("Accounts")
+        ScreenTitle(stringResource(R.string.tab_accounts))
         if (group == null) {
             Text(
-                "No network groups yet. Add one on the Networks tab first.",
+                stringResource(R.string.acc_no_groups),
                 modifier = Modifier.padding(top = 12.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -112,14 +115,14 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
     Box(Modifier.fillMaxSize()) {
         if (group.accounts.isEmpty()) {
             Text(
-                "No accounts in \"${group.name}\". Tap + to add one.",
+                stringResource(R.string.acc_none, group.name),
                 modifier = Modifier.padding(top = 16.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         LazyColumn(
             Modifier.fillMaxSize(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 12.dp, bottom = 88.dp),
+            contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items(group.accounts, key = { it.id }) { acc ->
@@ -146,11 +149,11 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
                         Modifier.horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        if (index == 0) Tag("Default", AccentBlue)
-                        if (status.accountId == acc.id) Tag("In use", StatusGreen)
-                        if (!acc.enabled) Tag("Disabled", StatusGrey)
-                        if (acc.passwordRejected) Tag("Password rejected", StatusRed)
-                        if (acc.isExhaustedNow(group, now)) Tag("Quota used this month", StatusAmber)
+                        if (index == 0) Tag(stringResource(R.string.tag_default), AccentBlue)
+                        if (status.accountId == acc.id) Tag(stringResource(R.string.tag_in_use), StatusGreen)
+                        if (!acc.enabled) Tag(stringResource(R.string.tag_disabled), StatusGrey)
+                        if (acc.passwordRejected) Tag(stringResource(R.string.tag_password_rejected), StatusRed)
+                        if (acc.isExhaustedNow(group, now)) Tag(stringResource(R.string.tag_quota_used), StatusAmber)
                     }
                 }
             }
@@ -158,7 +161,7 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
         FloatingActionButton(
             onClick = { adding = true },
             modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp),
-        ) { Icon(Icons.Default.Add, contentDescription = "Add account") }
+        ) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.acc_add_cd)) }
     }
 
     if (adding) {
@@ -186,16 +189,16 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
     deleting?.let { acc ->
         AlertDialog(
             onDismissRequest = { deleting = null },
-            title = { Text("Delete account?") },
-            text = { Text("\"${acc.name}\" will be removed from ${group.name}.") },
+            title = { Text(stringResource(R.string.acc_delete_title)) },
+            text = { Text(stringResource(R.string.acc_delete_text, acc.name, group.name)) },
             confirmButton = {
                 TextButton(onClick = {
                     app.store.updateGroup(group.id) { g -> g.copy(accounts = g.accounts.filterNot { it.id == acc.id }) }
                     deleting = null
                     app.engine.kick()
-                }) { Text("Delete") }
+                }) { Text(stringResource(R.string.common_delete)) }
             },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.common_cancel)) } },
         )
     }
 }
@@ -210,20 +213,25 @@ private fun RowMenu(
 ) {
     var open by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { open = true }) { Icon(Icons.Default.MoreVert, contentDescription = "More") }
+        IconButton(onClick = { open = true }) {
+            Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.acc_more_cd))
+        }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             @Composable
             fun item(label: String, action: AccountAction) = DropdownMenuItem(
                 text = { Text(label) },
                 onClick = { open = false; onAction(action) },
             )
-            item("Edit", AccountAction.Edit)
-            if (index > 0) item("Set as default", AccountAction.SetDefault)
-            if (index > 0) item("Move up", AccountAction.Up)
-            if (index < count - 1) item("Move down", AccountAction.Down)
-            item(if (enabled) "Disable" else "Enable", AccountAction.Toggle)
-            if (blocked) item("Clear account block", AccountAction.ClearBlock)
-            item("Delete", AccountAction.Delete)
+            item(stringResource(R.string.menu_edit), AccountAction.Edit)
+            if (index > 0) item(stringResource(R.string.menu_set_default), AccountAction.SetDefault)
+            if (index > 0) item(stringResource(R.string.menu_move_up), AccountAction.Up)
+            if (index < count - 1) item(stringResource(R.string.menu_move_down), AccountAction.Down)
+            item(
+                stringResource(if (enabled) R.string.menu_disable else R.string.menu_enable),
+                AccountAction.Toggle,
+            )
+            if (blocked) item(stringResource(R.string.menu_clear_block), AccountAction.ClearBlock)
+            item(stringResource(R.string.common_delete), AccountAction.Delete)
         }
     }
 }
@@ -237,24 +245,28 @@ private fun AccountDialog(initial: Account?, onDismiss: () -> Unit, onSave: (Acc
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (initial == null) "Add account" else "Edit account") },
+        title = { Text(stringResource(if (initial == null) R.string.acc_dialog_add else R.string.acc_dialog_edit)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name, onValueChange = { name = it },
-                    label = { Text("Name (optional)") }, singleLine = true,
+                    label = { Text(stringResource(R.string.acc_field_name)) }, singleLine = true,
                 )
                 OutlinedTextField(
                     value = user, onValueChange = { user = it },
-                    label = { Text("Student number") }, singleLine = true,
+                    label = { Text(stringResource(R.string.acc_field_user)) }, singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
                 )
                 OutlinedTextField(
                     value = pass, onValueChange = { pass = it },
-                    label = { Text("Password") }, singleLine = true,
+                    label = { Text(stringResource(R.string.acc_field_pass)) }, singleLine = true,
                     visualTransformation = if (show) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    trailingIcon = { TextButton(onClick = { show = !show }) { Text(if (show) "Hide" else "Show") } },
+                    trailingIcon = {
+                        TextButton(onClick = { show = !show }) {
+                            Text(stringResource(if (show) R.string.acc_hide else R.string.acc_show))
+                        }
+                    },
                 )
             }
         },
@@ -274,8 +286,8 @@ private fun AccountDialog(initial: Account?, onDismiss: () -> Unit, onSave: (Acc
                         )
                     )
                 },
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.common_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } },
     )
 }

@@ -30,9 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ir.unilink.android.NetworkGroup
+import ir.unilink.android.R
 import ir.unilink.android.UniLinkApp
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.time.ZoneId
@@ -46,7 +48,7 @@ fun NetworksScreen(app: UniLinkApp) {
 
     Box(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Column(Modifier.fillMaxSize().padding(top = 16.dp)) {
-            ScreenTitle("Networks")
+            ScreenTitle(stringResource(R.string.tab_networks))
             LazyColumn(
                 Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp),
@@ -55,34 +57,34 @@ fun NetworksScreen(app: UniLinkApp) {
                 items(data.groups, key = { it.id }) { g ->
                     Panel {
                         Text(g.name, style = MaterialTheme.typography.titleMedium)
-                        InfoRow("Wi-Fi names", g.ssids.joinToString().ifEmpty { "—" })
-                        InfoRow("Accounts", g.accounts.size.toString())
-                        InfoRow("Keepalive", "${g.keepaliveSec} s")
-                        InfoRow("Time zone", g.timeZone)
+                        InfoRow(stringResource(R.string.net_wifi_names), g.ssids.joinToString().ifEmpty { "—" })
+                        InfoRow(stringResource(R.string.net_accounts), g.accounts.size.toString())
+                        InfoRow(stringResource(R.string.net_keepalive), stringResource(R.string.net_seconds, g.keepaliveSec))
+                        InfoRow(stringResource(R.string.net_timezone), g.timeZone)
                         g.portalUrls.forEach { url ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(url, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                                if (g.pins.containsKey(url)) Tag("Certificate pinned", StatusGreen)
-                                else Tag("Not pinned", StatusAmber)
+                                if (g.pins.containsKey(url)) Tag(stringResource(R.string.net_pinned), StatusGreen)
+                                else Tag(stringResource(R.string.net_not_pinned), StatusAmber)
                             }
                         }
                         if (g.portalOnly) {
                             Text(
-                                "Also matches by reachable, pinned portal",
+                                stringResource(R.string.net_portal_only_note),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            TextButton(onClick = { editing = g }) { Text("Edit") }
+                            TextButton(onClick = { editing = g }) { Text(stringResource(R.string.menu_edit)) }
                             if (g.pins.isNotEmpty()) {
                                 TextButton(onClick = {
                                     app.store.updateGroup(g.id) { it.copy(pins = emptyMap()) }
                                     app.engine.log("Pinned certificates cleared for ${g.name}")
                                     app.engine.kick()
-                                }) { Text("Forget certificates") }
+                                }) { Text(stringResource(R.string.net_forget_certs)) }
                             }
-                            TextButton(onClick = { deleting = g }) { Text("Delete") }
+                            TextButton(onClick = { deleting = g }) { Text(stringResource(R.string.common_delete)) }
                         }
                     }
                 }
@@ -91,7 +93,7 @@ fun NetworksScreen(app: UniLinkApp) {
         FloatingActionButton(
             onClick = { adding = true },
             modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp),
-        ) { Icon(Icons.Default.Add, contentDescription = "Add network group") }
+        ) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.net_add_cd)) }
     }
 
     if (adding) {
@@ -111,14 +113,14 @@ fun NetworksScreen(app: UniLinkApp) {
     deleting?.let { g ->
         AlertDialog(
             onDismissRequest = { deleting = null },
-            title = { Text("Delete network group?") },
-            text = { Text("\"${g.name}\" and its ${g.accounts.size} account(s) will be removed from this phone.") },
+            title = { Text(stringResource(R.string.net_delete_title)) },
+            text = { Text(stringResource(R.string.net_delete_text, g.name, g.accounts.size)) },
             confirmButton = {
                 TextButton(onClick = { app.store.deleteGroup(g.id); deleting = null; app.engine.kick() }) {
-                    Text("Delete")
+                    Text(stringResource(R.string.common_delete))
                 }
             },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.common_cancel)) } },
         )
     }
 }
@@ -136,16 +138,23 @@ private fun GroupDialog(initial: NetworkGroup?, onDismiss: () -> Unit, onSave: (
     var phrases by remember { mutableStateOf(initial?.quotaPhrases?.joinToString("\n") ?: "") }
     var error by remember { mutableStateOf<String?>(null) }
 
+    val errName = stringResource(R.string.err_name)
+    val errUrlEmpty = stringResource(R.string.err_url_empty)
+    val errUrlHttps = stringResource(R.string.err_url_https)
+    val errKeepalive = stringResource(R.string.err_keepalive)
+    val errTz = stringResource(R.string.err_tz)
+    val errSsid = stringResource(R.string.err_ssid)
+
     fun trySave() {
         val urlList = lines(urls)
         val keepInt = keep.trim().toIntOrNull()
         error = when {
-            name.isBlank() -> "Give the network a name."
-            urlList.isEmpty() -> "Add at least one portal URL."
-            urlList.any { it.toHttpUrlOrNull()?.isHttps != true } -> "Portal URLs must be valid https:// addresses."
-            keepInt == null || keepInt !in 30..180 -> "Keepalive must be between 30 and 180 seconds."
-            runCatching { ZoneId.of(tz.trim()) }.isFailure -> "Unknown time zone. Example: Asia/Tehran"
-            lines(ssids).isEmpty() && !portalOnly -> "Add a Wi-Fi name, or enable portal-only matching."
+            name.isBlank() -> errName
+            urlList.isEmpty() -> errUrlEmpty
+            urlList.any { it.toHttpUrlOrNull()?.isHttps != true } -> errUrlHttps
+            keepInt == null || keepInt !in 30..180 -> errKeepalive
+            runCatching { ZoneId.of(tz.trim()) }.isFailure -> errTz
+            lines(ssids).isEmpty() && !portalOnly -> errSsid
             else -> null
         }
         if (error != null) return
@@ -166,43 +175,43 @@ private fun GroupDialog(initial: NetworkGroup?, onDismiss: () -> Unit, onSave: (
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (initial == null) "Add network group" else "Edit network group") },
+        title = { Text(stringResource(if (initial == null) R.string.net_dialog_add else R.string.net_dialog_edit)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name, onValueChange = { name = it },
-                    label = { Text("Name") }, singleLine = true,
+                    label = { Text(stringResource(R.string.net_field_name)) }, singleLine = true,
                 )
                 OutlinedTextField(
                     value = ssids, onValueChange = { ssids = it },
-                    label = { Text("Wi-Fi names (one per line, exact match)") }, minLines = 2,
+                    label = { Text(stringResource(R.string.net_field_ssids)) }, minLines = 2,
                 )
                 OutlinedTextField(
                     value = urls, onValueChange = { urls = it },
-                    label = { Text("Portal URLs (https, one per line)") }, minLines = 2,
+                    label = { Text(stringResource(R.string.net_field_urls)) }, minLines = 2,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = portalOnly, onCheckedChange = { portalOnly = it })
-                    Text("Also match by a reachable, pinned portal (when the Wi-Fi name is unknown)")
+                    Text(stringResource(R.string.net_portal_only_check))
                 }
                 OutlinedTextField(
                     value = keep, onValueChange = { keep = it },
-                    label = { Text("Keepalive seconds (30–180)") }, singleLine = true,
+                    label = { Text(stringResource(R.string.net_field_keepalive)) }, singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
                 OutlinedTextField(
                     value = tz, onValueChange = { tz = it },
-                    label = { Text("Time zone (for monthly reset)") }, singleLine = true,
+                    label = { Text(stringResource(R.string.net_field_tz)) }, singleLine = true,
                 )
                 OutlinedTextField(
                     value = phrases, onValueChange = { phrases = it },
-                    label = { Text("Extra quota-exceeded phrases (one per line)") }, minLines = 2,
-                    supportingText = { Text("Optional. The university's standard message is built in.") },
+                    label = { Text(stringResource(R.string.net_field_phrases)) }, minLines = 2,
+                    supportingText = { Text(stringResource(R.string.net_phrases_support)) },
                 )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             }
         },
-        confirmButton = { TextButton(onClick = { trySave() }) { Text("Save") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { TextButton(onClick = { trySave() }) { Text(stringResource(R.string.common_save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } },
     )
 }

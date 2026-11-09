@@ -49,28 +49,29 @@ class UniLinkTileService : TileService() {
 
     private fun render(st: EngineStatus) {
         val tile = qsTile ?: return
+        val ui = Lang.wrap(this)
         tile.icon = Icon.createWithResource(this, R.drawable.ic_stat)
         tile.label = "UniLink"
         when (st.phase) {
             Phase.Connected -> {
                 tile.state = Tile.STATE_ACTIVE
-                tile.setSubtitleCompat(st.accountName ?: "Connected")
+                tile.setSubtitleCompat(st.accountName ?: st.title)
             }
             Phase.Connecting -> {
                 tile.state = Tile.STATE_ACTIVE
-                tile.setSubtitleCompat("Signing in…")
+                tile.setSubtitleCompat(ui.getString(R.string.tile_signing_in))
             }
             Phase.NeedCertificate -> {
                 tile.state = Tile.STATE_INACTIVE
-                tile.setSubtitleCompat("Review certificate")
+                tile.setSubtitleCompat(ui.getString(R.string.tile_review_cert))
             }
             Phase.WaitingRetry -> {
                 tile.state = Tile.STATE_INACTIVE
-                tile.setSubtitleCompat("Retrying")
+                tile.setSubtitleCompat(ui.getString(R.string.tile_retrying))
             }
             Phase.Paused -> {
                 tile.state = Tile.STATE_INACTIVE
-                tile.setSubtitleCompat("Paused")
+                tile.setSubtitleCompat(ui.getString(R.string.tile_paused))
             }
             Phase.WaitingWifi, Phase.AccountNeeded -> {
                 tile.state = Tile.STATE_INACTIVE
@@ -78,7 +79,7 @@ class UniLinkTileService : TileService() {
             }
             Phase.Stopped -> {
                 tile.state = Tile.STATE_INACTIVE
-                tile.setSubtitleCompat("Tap to connect")
+                tile.setSubtitleCompat(ui.getString(R.string.tile_tap_connect))
             }
         }
         tile.updateTile()

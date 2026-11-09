@@ -1,5 +1,6 @@
 package ir.unilink.android
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +9,11 @@ import ir.unilink.android.ui.AppRoot
 import ir.unilink.android.ui.UniLinkTheme
 
 class MainActivity : ComponentActivity() {
+    /** Apply the language chosen in Settings (and its text direction) to this screen. */
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(Lang.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

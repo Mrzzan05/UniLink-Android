@@ -96,10 +96,11 @@ class KeepAliveService : Service() {
     }
 
     private fun createChannel() {
+        val ui = Lang.wrap(this)
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "UniLink status", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Shows the current university Wi-Fi sign-in status"
+            NotificationChannel(CHANNEL_ID, ui.getString(R.string.notif_channel_name), NotificationManager.IMPORTANCE_LOW).apply {
+                description = ui.getString(R.string.notif_channel_desc)
                 setShowBadge(false)
             }
         )
@@ -123,7 +124,7 @@ class KeepAliveService : Service() {
             .setContentTitle("UniLink")
             .setContentText(text)
             .setContentIntent(open)
-            .addAction(0, "Exit", exit)
+            .addAction(0, Lang.wrap(this).getString(R.string.notif_exit), exit)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)

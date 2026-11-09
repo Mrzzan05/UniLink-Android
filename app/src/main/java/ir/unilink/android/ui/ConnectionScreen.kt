@@ -24,12 +24,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ir.unilink.android.CertPrompt
 import ir.unilink.android.KeepAliveService
 import ir.unilink.android.Phase
+import ir.unilink.android.R
 import ir.unilink.android.UniLinkApp
 
 @Composable
@@ -50,7 +52,7 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        ScreenTitle("Connection")
+        ScreenTitle(stringResource(R.string.tab_connection))
 
         Panel {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -62,10 +64,10 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
                 Text(st.detail, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             HorizontalDivider(Modifier.padding(vertical = 6.dp), color = MaterialTheme.colorScheme.outlineVariant)
-            InfoRow("Network", st.groupName ?: "—")
-            InfoRow("Account", st.accountName ?: "—")
-            InfoRow("Last keepalive", formatTime(st.lastKeepalive))
-            InfoRow("Next check", formatTime(st.nextCheck))
+            InfoRow(stringResource(R.string.conn_network), st.groupName ?: "—")
+            InfoRow(stringResource(R.string.conn_account), st.accountName ?: "—")
+            InfoRow(stringResource(R.string.conn_last_keepalive), formatTime(st.lastKeepalive))
+            InfoRow(stringResource(R.string.conn_next_check), formatTime(st.nextCheck))
         }
 
         st.pendingCert?.let { prompt ->
@@ -81,11 +83,11 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
                     app.engine.connectNow()
                 },
                 modifier = Modifier.weight(1f),
-            ) { Text("Connect") }
+            ) { Text(stringResource(R.string.conn_connect)) }
             OutlinedButton(
                 onClick = { app.engine.pauseAndSignOut() },
                 modifier = Modifier.weight(1f),
-            ) { Text("Pause & sign out") }
+            ) { Text(stringResource(R.string.conn_pause)) }
         }
     }
 }
@@ -94,22 +96,27 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
 private fun CertificateCard(p: CertPrompt, onTrust: () -> Unit) {
     Panel {
         Text(
-            if (p.changed) "Portal certificate changed" else "Review portal certificate",
+            stringResource(if (p.changed) R.string.cert_changed_title else R.string.cert_review_title),
             style = MaterialTheme.typography.titleMedium,
             color = StatusAmber,
         )
         Text(
-            "Compare this fingerprint with the certificate your browser shows on the normal university " +
-                "login page (or ask IT) before trusting it. Until you approve, no password is sent.",
+            stringResource(R.string.cert_body),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        InfoRow("Network", p.groupName)
+        InfoRow(stringResource(R.string.cert_network), p.groupName)
         Text(p.url, style = MaterialTheme.typography.bodySmall)
-        Text("SHA-256", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            stringResource(R.string.cert_sha256),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Text(p.fingerprint, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
         if (p.subject.isNotBlank()) {
             Text(p.subject, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Button(onClick = onTrust, modifier = Modifier.padding(top = 6.dp)) { Text("Trust this certificate") }
+        Button(onClick = onTrust, modifier = Modifier.padding(top = 6.dp)) {
+            Text(stringResource(R.string.cert_trust))
+        }
     }
 }

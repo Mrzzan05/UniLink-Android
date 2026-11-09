@@ -1,5 +1,6 @@
 package ir.unilink.android.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,16 +23,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import ir.unilink.android.R
 import ir.unilink.android.UniLinkApp
 
-private data class TabItem(val label: String, val icon: ImageVector)
+private data class TabItem(@StringRes val label: Int, val icon: ImageVector)
 
 private val tabs = listOf(
-    TabItem("Connection", Icons.Default.Refresh),
-    TabItem("Accounts", Icons.Default.Person),
-    TabItem("Networks", Icons.Default.Place),
-    TabItem("Activity", Icons.AutoMirrored.Filled.List),
-    TabItem("Settings", Icons.Default.Settings),
+    TabItem(R.string.tab_connection, Icons.Default.Refresh),
+    TabItem(R.string.tab_accounts, Icons.Default.Person),
+    TabItem(R.string.tab_networks, Icons.Default.Place),
+    TabItem(R.string.tab_activity, Icons.AutoMirrored.Filled.List),
+    TabItem(R.string.tab_settings, Icons.Default.Settings),
 )
 
 @Composable
@@ -42,11 +45,12 @@ fun AppRoot(app: UniLinkApp) {
         bottomBar = {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                 tabs.forEachIndexed { i, t ->
+                    val label = stringResource(t.label)
                     NavigationBarItem(
                         selected = tab == i,
                         onClick = { tab = i },
-                        icon = { Icon(t.icon, contentDescription = t.label) },
-                        label = { Text(t.label, maxLines = 1) },
+                        icon = { Icon(t.icon, contentDescription = label) },
+                        label = { Text(label, maxLines = 1) },
                     )
                 }
             }

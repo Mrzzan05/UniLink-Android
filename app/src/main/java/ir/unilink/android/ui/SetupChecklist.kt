@@ -21,7 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import ir.unilink.android.R
 import ir.unilink.android.UniLinkApp
 
 private class Step(
@@ -51,26 +53,39 @@ fun SetupChecklist(app: UniLinkApp, goToTab: (Int) -> Unit) {
         refresh++
     }
 
+    val tAccount = stringResource(R.string.setup_account_title)
+    val hAccount = stringResource(R.string.setup_account_hint)
+    val bAccount = stringResource(R.string.setup_open_accounts)
+    val tLoc = stringResource(R.string.setup_location_title)
+    val hLoc = stringResource(R.string.setup_location_hint)
+    val tNotif = stringResource(R.string.setup_notif_title)
+    val hNotif = stringResource(R.string.setup_notif_hint)
+    val tBatt = stringResource(R.string.setup_battery_title)
+    val hBatt = stringResource(R.string.setup_battery_hint)
+    val tCert = stringResource(R.string.setup_cert_title)
+    val hCert = stringResource(R.string.setup_cert_hint)
+    val allow = stringResource(R.string.common_allow)
+
     // Recomputed whenever the screen resumes or a permission dialog returns.
     val steps = remember(resumeTick, refresh, data) {
         listOf(
             Step(
-                "Add an account",
-                "Student number and password, on the Accounts tab.",
+                tAccount,
+                hAccount,
                 data.groups.any { g -> g.accounts.isNotEmpty() },
-                "Open Accounts",
+                bAccount,
             ) { goToTab(1) },
             Step(
-                "Allow location",
-                "Android only shows the Wi-Fi name to apps with this. It is never stored or sent.",
+                tLoc,
+                hLoc,
                 locationGranted(ctx),
-                "Allow",
+                allow,
             ) { locLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) },
             Step(
-                "Allow notifications",
-                "Shows the connection status in the notification shade.",
+                tNotif,
+                hNotif,
                 notificationsEnabled(ctx),
-                "Allow",
+                allow,
             ) {
                 if (Build.VERSION.SDK_INT >= 33 &&
                     androidx.core.content.ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -79,14 +94,14 @@ fun SetupChecklist(app: UniLinkApp, goToTab: (Int) -> Unit) {
                 else openNotificationSettings(ctx)
             },
             Step(
-                "Unrestricted battery",
-                "Stops Android from pausing UniLink while the screen is off.",
+                tBatt,
+                hBatt,
                 batteryUnrestricted(ctx),
-                "Allow",
+                allow,
             ) { requestBatteryUnrestricted(ctx) },
             Step(
-                "Trust the portal certificate",
-                "Appears here the first time you are on campus Wi-Fi. Nothing is sent before you approve it.",
+                tCert,
+                hCert,
                 data.groups.any { it.pins.isNotEmpty() },
             ),
         )
@@ -96,7 +111,7 @@ fun SetupChecklist(app: UniLinkApp, goToTab: (Int) -> Unit) {
     val doneCount = steps.count { it.done }
 
     Panel {
-        Text("Get ready  ($doneCount/${steps.size})", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.setup_title, doneCount, steps.size), style = MaterialTheme.typography.titleMedium)
         Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 4.dp)) {
             steps.forEach { s ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

@@ -1,6 +1,7 @@
 package ir.unilink.android
 
 import android.content.Context
+import androidx.annotation.StringRes
 import android.net.Network
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +59,7 @@ class Engine(private val ctx: Context, private val store: Store) {
     private val wake = Channel<Unit>(Channel.CONFLATED)
     private val opLock = Mutex()
 
-    private val _status = MutableStateFlow(EngineStatus())
+    private val _status = MutableStateFlow(EngineStatus(title = str(R.string.st_stopped)))
     val status: StateFlow<EngineStatus> = _status.asStateFlow()
 
     private val _log = MutableStateFlow<List<String>>(emptyList())
@@ -117,7 +118,7 @@ class Engine(private val ctx: Context, private val store: Store) {
         tracker?.stop()
         tracker = null
         session = null
-        _status.value = EngineStatus()
+        _status.value = EngineStatus(title = str(R.string.st_stopped))
         log("Service stopped")
     }
 
@@ -148,7 +149,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                 val ok = opLock.withLock { PortalClient(net, g.pins[s.url]).logout(s.url, s.username) }
                 log(if (ok) "Signed out" else "Sign-out request failed")
             }
-            setStatus(Phase.Paused, "Paused", "Signed out. Tap Connect to resume.")
+            setStatus(Phase.Paused, str(R.string.st_paused), str(R.string.st_paused_d))
         }
         wake.trySend(Unit)
     }
@@ -196,7 +197,7 @@ class Engine(private val ctx: Context, private val store: Store) {
     private suspend fun step(t: WifiTracker) {
         val now = System.currentTimeMillis()
         if (paused) {
-            setStatus(Phase.Paused, "Paused", "Signed out. Tap Connect to resume.")
+            setStatus(Phase.Paused, str(R.string.st_paused), str(R.string.st_paused_d))
             sleep(300_000)
             return
         }
@@ -204,7 +205,7 @@ class Engine(private val ctx: Context, private val store: Store) {
         if (net == null || !t.hasIpv4(net)) {
             dropSession("Wi-Fi unavailable")
             userRequested = false
-            setStatus(Phase.WaitingWifi, "Waiting for campus Wi-Fi", "No Wi-Fi connection with an IP address yet.")
+            setStatus(Phase.WaitingWifi, str(R.string.st_wait_wifi), str(R.string.st_wait_wifi_none))
             sleep(60_000)
             return
         }
@@ -218,15 +219,14 @@ class Engine(private val ctx: Context, private val store: Store) {
         }
         if (group == null) {
             dropSession(null)
-            val why = if (ssid == null)
-                "The Wi-Fi name is hidden by Android. Allow location access on the Connection tab, or turn on portal-only matching for a network."
-            else "\"$ssid\" is not in any configured network."
-            setStatus(Phase.WaitingWifi, "Waiting for campus Wi-Fi", why)
+            val why = if (ssid == null) str(R.string.st_wait_wifi_hidden)
+            else str(R.string.st_wait_wifi_unknown, ssid)
+            setStatus(Phase.WaitingWifi, str(R.string.st_wait_wifi), why)
             sleep(60_000)
             return
         }
         if (!data.settings.autoSignIn && !userRequested) {
-            setStatus(Phase.WaitingWifi, "Automatic sign-in is off", "Tap Connect to sign in to ${group.name}.", group.name)
+            setStatus(Phase.WaitingWifi, str(R.string.st_auto_off), str(R.string.st_auto_off_d, group.name), group.name)
             sleep(60_000)
             return
         }
@@ -272,7 +272,7 @@ class Engine(private val ctx: Context, private val store: Store) {
     // ---------- login ----------
 
     private suspend fun doLogin(g: NetworkGroup, net: Network) {
-        setStatus(Phase.Connecting, "Signing in…", g.name, g.name)
+        setStatus(Phase.Connecting, str(R.string.st_signing_in), g.name, g.name)
         when (val o = opLock.withLock { attemptLogin(g, net) }) {
             is Outcome.LoggedIn -> {
                 val now = System.currentTimeMillis()
@@ -295,9 +295,8 @@ class Engine(private val ctx: Context, private val store: Store) {
                 )
                 _status.value = EngineStatus(
                     phase = Phase.NeedCertificate,
-                    title = "Review certificate",
-                    detail = if (o.prompt.changed) "The portal certificate changed. No password has been sent."
-                    else "Approve the portal certificate once. No password has been sent.",
+                    title = str(R.string.st_review_cert),
+                    detail = if (o.prompt.changed) str(R.string.st_cert_changed_d) else str(R.string.st_cert_new_d),
                     groupName = g.name,
                     pendingCert = o.prompt,
                 )
@@ -306,8 +305,8 @@ class Engine(private val ctx: Context, private val store: Store) {
                 val now = System.currentTimeMillis()
                 _status.value = EngineStatus(
                     phase = Phase.AccountNeeded,
-                    title = "Account needed",
-                    detail = "No usable account in ${g.name}: none added, all disabled, quota used up or password rejected.",
+                    title = str(R.string.st_account_needed),
+                    detail = str(R.string.st_account_needed_d, g.name),
                     groupName = g.name,
                     nextCheck = now + 60_000,
                 )
@@ -321,7 +320,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                 log("Retry in ${seconds}s: ${o.reason}")
                 _status.value = EngineStatus(
                     phase = Phase.WaitingRetry,
-                    title = "Waiting to retry",
+                    title = str(R.string.st_wait_retry),
                     detail = o.reason,
                     groupName = g.name,
                     nextCheck = retryAt,
@@ -424,8 +423,8 @@ class Engine(private val ctx: Context, private val store: Store) {
                 log("Certificate changed during keepalive — review required")
                 _status.value = EngineStatus(
                     phase = Phase.NeedCertificate,
-                    title = "Review certificate",
-                    detail = "The portal certificate changed. No password has been sent.",
+                    title = str(R.string.st_review_cert),
+                    detail = str(R.string.st_cert_changed_d),
                     groupName = g.name,
                     pendingCert = CertPrompt(g.id, g.name, s.url, r.fingerprint, r.subject, r.changed),
                 )
@@ -447,7 +446,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                 } else {
                     _status.value = EngineStatus(
                         phase = Phase.WaitingRetry,
-                        title = "Waiting to retry",
+                        title = str(R.string.st_wait_retry),
                         detail = r.reason,
                         groupName = g.name,
                         accountId = s.accountId,
@@ -462,6 +461,9 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     // ---------- helpers ----------
 
+    /** UI text in the language chosen in Settings (log lines stay English on purpose). */
+    private fun str(@StringRes id: Int, vararg args: Any): String = Lang.wrap(ctx).getString(id, *args)
+
     private fun intervalMs(g: NetworkGroup) = g.keepaliveSec.coerceIn(30, 180) * 1000L
 
     private fun backoffSeconds(n: Int): Int {
@@ -473,8 +475,8 @@ class Engine(private val ctx: Context, private val store: Store) {
         val s = session ?: return
         _status.value = EngineStatus(
             phase = Phase.Connected,
-            title = "Connected",
-            detail = "Signed in as \"${s.accountName}\" on ${g.name}.",
+            title = str(R.string.st_connected),
+            detail = str(R.string.st_connected_d, s.accountName, g.name),
             groupName = g.name,
             accountId = s.accountId,
             accountName = s.accountName,

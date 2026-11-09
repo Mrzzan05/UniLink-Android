@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+- New: Persian (فارسی) interface with right-to-left layout. It follows the phone's language by default; change it in Settings → Language (System / English / فارسی).
+- All screens, dialogs, status messages, the notification and the Quick Settings tile are translated. The Activity log stays in English on purpose so it is easy to share.
+
 ## 1.1.0
 - New: first-run checklist on the Connection tab (account, location, notifications, battery, certificate). It hides itself when everything is ready.
 - New: Quick Settings tile. Tap to connect, tap again to pause and sign out. Add it from the edit panel of Quick Settings.
