@@ -5,6 +5,7 @@
 **Stay signed in to your university Wi-Fi: automatically, reliably, and without touching the browser.**
 
 [![Build APK](../../actions/workflows/build-apk.yml/badge.svg)](../../actions/workflows/build-apk.yml)
+[![Release](https://img.shields.io/github/v/release/Mrzzan05/UniLink-Android)](../../releases/latest)
 ![Platform](https://img.shields.io/badge/platform-Android%208.0%2B-3DDC84?logo=android&logoColor=white)
 ![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
@@ -23,7 +24,7 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 
 | | |
 |---|---|
-| **VPN-safe** | Portal traffic is bound to the physical Wi-Fi interface, so it works even while a VPN is on. The system proxy is ignored. |
+| **VPN-safe** | Portal traffic is bound to the physical Wi-Fi interface, so it works while a VPN is on. If your VPN forbids that, UniLink retries over the VPN route and tells you what to change (see [Troubleshooting](#troubleshooting)). The system proxy is ignored. |
 | **Multiple accounts** | Accounts are tried one at a time, in your order. When the portal reports the monthly allowance is used up, the account is skipped until the next month (Asia/Tehran time by default) and the next one is used. |
 | **Smart error handling** | A rejected password blocks only that account. Network errors and unknown replies are retried with growing delays and never burn an account. |
 | **Certificate pinning** | The portal uses a self-signed certificate. UniLink shows its SHA-256 fingerprint once, you approve it, and from then on only that certificate is accepted. No password is sent before approval. |
@@ -36,6 +37,12 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 | **Keeps existing sessions** | If the portal already has a live session for your account, UniLink keeps it alive instead of signing in again. |
 | **Diagnostics** | In-memory activity log you can share. Passwords and student numbers are never logged. |
 
+## Screenshots
+
+| Connection | Networks | Settings |
+|---|---|---|
+| <img src="docs/screenshots/connection.png" width="240"> | <img src="docs/screenshots/networks.png" width="240"> | <img src="docs/screenshots/settings.png" width="240"> |
+
 ## Install
 
 1. Open the [latest release](../../releases/latest) on your phone and download `UniLink-vX.Y.Z.apk`.
@@ -44,7 +51,9 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 4. **Accounts** tab → **+** → add your student number and password.
 5. Connect to `UUWN`. On the **Connection** tab a certificate card appears: compare the fingerprint with the one your browser shows on the normal login page, then tap **Trust this certificate**.
 
-After that it signs in on its own whenever you're on campus Wi-Fi.
+After that it signs in on its own whenever you're on campus Wi-Fi. New versions install over old ones (same signing key) and keep your accounts and settings.
+
+Optionally add the **Quick Settings tile** (edit the quick panel) or the **home-screen widget** (long-press the home screen → Widgets → UniLink).
 
 ## The five tabs
 
@@ -63,6 +72,20 @@ UniLink keeps a background service running, so it does use some battery. Setting
 
 To find your lightest reliable setting: run a day with both on, a day with only Wi-Fi power off, and compare UniLink's share in phone **Settings → Battery**. The Connection tab counts successful, failed and late keepalives, so you can tell whether a change cost reliability.
 
+## Troubleshooting
+
+**It stopped working while my VPN is on** (the log says `Binding socket to network … EPERM`)
+Some VPN apps, in strict mode, forbid other apps from connecting to the Wi-Fi directly. Best fix: in your VPN app, **exclude UniLink from the tunnel** (split tunneling / bypass apps / per-app VPN), or turn on **Allow LAN / bypass local network**. Since v1.4.1 UniLink also retries over the VPN route, checks again every minute at most, and reacts at once when a VPN starts or stops.
+
+**"Waiting for campus Wi-Fi" although I'm connected**
+Allow **Location** (Android hides the Wi-Fi name without it), or turn on portal-only matching for the network on the **Networks** tab.
+
+**No status notification**
+Notifications may be blocked for the app; the checklist on the Connection tab and **Settings → Permissions** show the real state.
+
+**Anything else**
+Open an issue and paste the **Share log** output from the **Activity** tab. Passwords and student numbers are never in it.
+
 ## Build it yourself
 
 You don't need Android Studio: push the repo to GitHub and the **Build APK** workflow builds it for you.
@@ -75,19 +98,20 @@ git tag v1.0.2
 git push origin v1.0.2
 ```
 
-Locally: open the folder in Android Studio (JDK 17, Android SDK 35) and press Run.
+Locally: open the folder in Android Studio (JDK 17, Android SDK 35) and press Run, or use the included Gradle wrapper (`./gradlew assembleRelease`, Gradle 8.9).
 
 Both APKs are signed with the key committed in `app/debug.keystore`, so new builds install over old ones. This is fine for personal use, but it is not a Play Store release key.
 
 ## Status and limitations
 
-- Early release. The portal protocol was reimplemented from the Windows version's documented behavior, so portals that reply differently may need small adjustments. If something doesn't work, open an issue with the **Share log** output from the Activity tab.
-- If a VPN's kill switch blocks the local network, enable "Allow LAN" in that VPN app.
+- The portal protocol was reimplemented from the Windows version's documented behavior and has been used day to day on UUWN. Portals that reply differently may need small adjustments. If something doesn't work, open an issue with the **Share log** output from the Activity tab.
+- If a VPN blocks the local network or direct Wi-Fi access, exclude UniLink from the VPN or allow LAN (see Troubleshooting).
+- Android only. There is no iOS version: iOS can't keep a background session alive the way this app does.
 - Activity log lines are English only (by design, so they are easy to share).
 
 ## Roadmap
 
-Import/export of network profiles · per-account usage notes · battery tuning
+Import/export of network profiles · per-account usage notes · more battery tuning · IzzyOnDroid and F-Droid listing (in progress)
 
 ## License
 
