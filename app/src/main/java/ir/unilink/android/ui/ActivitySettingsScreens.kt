@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
@@ -71,14 +73,24 @@ fun ActivityScreen(app: UniLinkApp) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (log.isEmpty()) {
-            Text(stringResource(R.string.act_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        // Log lines are English: keep them left-to-right even in the Persian layout.
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(log.asReversed()) { line ->
-                    Text(line, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
+        GlassSurface(Modifier.fillMaxSize()) {
+            if (log.isEmpty()) {
+                Text(
+                    stringResource(R.string.act_empty),
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // Log lines are English: keep them left-to-right even in the Persian layout.
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                LazyColumn(
+                    Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    items(log.asReversed()) { line ->
+                        Text(line, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
+                    }
                 }
             }
         }
@@ -150,6 +162,10 @@ fun SettingsScreen(app: UniLinkApp) {
                             }
                         },
                         label = { Text(stringResource(label)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                            selectedLabelColor = MaterialTheme.colorScheme.primary,
+                        ),
                     )
                 }
             }

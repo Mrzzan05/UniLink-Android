@@ -108,8 +108,12 @@ fun sha256Hex(bytes: ByteArray): String =
  * the system proxy is ignored, redirects are refused and the certificate must match the pin.
  */
 class PortalClient(private val network: Network, private val pin: String?) {
+    companion object {
+        const val VPN_BLOCKED =
+            "VPN blocks UniLink from reaching the Wi-Fi (EPERM). In your VPN app, exclude UniLink from the tunnel or allow the local network."
+    }
 
-    private fun buildClient(cap: Capture): OkHttpClient {
+    private fun buildClient(cap: Capture, bound: Boolean): OkHttpClient {
         val trust = PinTrust(pin, cap)
         val ssl = SSLContext.getInstance("TLS").apply {
             init(null, arrayOf<TrustManager>(trust), SecureRandom())
@@ -121,9 +125,9 @@ class PortalClient(private val network: Network, private val pin: String?) {
                 return v4
             }
         }
-        return OkHttpClient.Builder()
-            .socketFactory(network.socketFactory)
-            .dns(dns)
+        val builder = OkHttpClient.Builder()
+        if (bound) builder.socketFactory(network.socketFactory).dns(dns)
+        return builder
             .proxy(Proxy.NO_PROXY)
             .followRedirects(false)
             .followSslRedirects(false)
@@ -138,10 +142,27 @@ class PortalClient(private val network: Network, private val pin: String?) {
             .build()
     }
 
+    /**
+     * Normally every request is bound to the Wi-Fi network. Some VPN setups make Android refuse that
+     * (EPERM); then we try once over the default route, which works when the VPN lets local
+     * addresses through. This is safe: the portal certificate is pinned and the TLS handshake
+     * happens before any password is sent, so a wrong host can never receive credentials.
+     */
     private fun execute(request: Request, isLogin: Boolean, extra: List<String>): PortalResult {
+        val first = runOnce(request, isLogin, extra, bound = true)
+        if (first is PortalResult.Failure && first.reason.contains("EPERM")) {
+            return when (val second = runOnce(request, isLogin, extra, bound = false)) {
+                is PortalResult.Failure, is PortalResult.CertReview -> PortalResult.Failure(VPN_BLOCKED)
+                else -> second
+            }
+        }
+        return first
+    }
+
+    private fun runOnce(request: Request, isLogin: Boolean, extra: List<String>, bound: Boolean): PortalResult {
         val cap = Capture()
         return try {
-            buildClient(cap).newCall(request).execute().use { resp ->
+            buildClient(cap, bound).newCall(request).execute().use { resp ->
                 if (resp.isRedirect) return PortalResult.Failure("Redirect rejected by policy")
                 val body = resp.peekBody(65536).string()
                 val result = PortalParser.classify(body, isLogin, extra)

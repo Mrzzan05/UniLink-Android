@@ -127,6 +127,7 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
                 onClick = { app.engine.pauseAndSignOut() },
                 modifier = Modifier.weight(1f).height(52.dp),
                 shape = RoundedCornerShape(26.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
             ) { Text(stringResource(R.string.conn_pause)) }
         }
     }

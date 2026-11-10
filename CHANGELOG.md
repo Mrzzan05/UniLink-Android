@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1
+- Fix: with a VPN on, sign-in and keepalives could stop after a while with "Binding socket to network … failed: EPERM". Some VPN setups make Android refuse a direct connection to the Wi-Fi. UniLink now retries once over the default route (safe, because the portal certificate is pinned and checked before any password is sent), says clearly what is wrong if that fails too, retries every minute at most, and retries immediately when a VPN starts or stops.
+- Polish: language chips, the activity log in a glass panel, a clearer Pause button.
+
 ## 1.4.0
 - New: glass-style interface with a soft gradient backdrop, frosted cards, a floating navigation bar and an animated status badge on the Connection tab. It follows the phone's light or dark theme.
 - New: small home-screen widget showing the status with a Connect / Pause button (plain RemoteViews, no extra library, so the APK stays small).

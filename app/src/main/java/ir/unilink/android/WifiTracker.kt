@@ -10,6 +10,7 @@ import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import java.net.Inet4Address
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Tracks the physical (non-VPN) Wi-Fi network. Requests made through [network] are bound to the
@@ -30,6 +31,24 @@ class WifiTracker(context: Context, private val onEvent: () -> Unit) {
 
     private var registered = false
     private var callback: ConnectivityManager.NetworkCallback? = null
+
+    private val vpnNets: MutableSet<Network> = ConcurrentHashMap.newKeySet()
+    private var vpnCallback: ConnectivityManager.NetworkCallback? = null
+
+    /** True while any VPN is up. A VPN starting or stopping changes what the OS lets us bind to. */
+    val vpnUp: Boolean get() = vpnNets.isNotEmpty()
+
+    private inner class VpnCallback : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            vpnNets.add(network)
+            onEvent()
+        }
+
+        override fun onLost(network: Network) {
+            vpnNets.remove(network)
+            onEvent()
+        }
+    }
 
     private fun cleanSsid(raw: String?): String? {
         val s = raw?.trim()?.removeSurrounding("\"") ?: return null
@@ -84,6 +103,13 @@ class WifiTracker(context: Context, private val onEvent: () -> Unit) {
             if (Build.VERSION.SDK_INT >= 31) LocationCallback() else PlainCallback()
         callback = cb
         cm.registerNetworkCallback(request, cb)
+        val vpnRequest = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_VPN)
+            .removeCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+            .build()
+        val vcb = VpnCallback()
+        vpnCallback = vcb
+        runCatching { cm.registerNetworkCallback(vpnRequest, vcb) }
         registered = true
     }
 
@@ -91,6 +117,9 @@ class WifiTracker(context: Context, private val onEvent: () -> Unit) {
         if (!registered) return
         callback?.let { runCatching { cm.unregisterNetworkCallback(it) } }
         callback = null
+        vpnCallback?.let { runCatching { cm.unregisterNetworkCallback(it) } }
+        vpnCallback = null
+        vpnNets.clear()
         registered = false
         network = null
         callbackSsid = null

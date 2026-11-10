@@ -180,7 +180,7 @@ class Engine(private val ctx: Context, private val store: Store) {
     private fun onNetworkEvent() {
         val t = tracker ?: return
         val n = t.network
-        val sig = "${n?.networkHandle}|${n?.let { t.hasIpv4(it) }}|${t.ssid()}"
+        val sig = "${n?.networkHandle}|${n?.let { t.hasIpv4(it) }}|${t.ssid()}|vpn=${t.vpnUp}"
         if (sig != lastSignature) {
             lastSignature = sig
             failures = 0
@@ -327,7 +327,9 @@ class Engine(private val ctx: Context, private val store: Store) {
             is Outcome.Retry -> {
                 failures++
                 val now = System.currentTimeMillis()
-                val seconds = maxOf(o.minSeconds, backoffSeconds(failures))
+                var seconds = maxOf(o.minSeconds, backoffSeconds(failures))
+                // A VPN that blocks Wi-Fi access can change at any moment; keep checking often.
+                if (o.reason == PortalClient.VPN_BLOCKED) seconds = minOf(seconds, 60)
                 retryAt = now + seconds * 1000L
                 log("Retry in ${seconds}s: ${o.reason}")
                 _status.value = EngineStatus(
