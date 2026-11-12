@@ -51,7 +51,7 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 4. **Accounts** tab → **+** → add your student number and password.
 5. Connect to `UUWN`. On the **Connection** tab a certificate card appears: compare the fingerprint with the one your browser shows on the normal login page, then tap **Trust this certificate**.
 
-After that it signs in on its own whenever you're on campus Wi-Fi. New versions install over old ones (same signing key) and keep your accounts and settings.
+After that it signs in on its own whenever you're on campus Wi-Fi. From v1.5.0 on, releases are signed with a private key, so new versions install over old ones and keep your accounts and settings. (Moving from an older version to 1.5.0 needs a one-time uninstall and re-add of your accounts, because the signing key changed.)
 
 Optionally add the **Quick Settings tile** (edit the quick panel) or the **home-screen widget** (long-press the home screen → Widgets → UniLink).
 
@@ -100,7 +100,7 @@ git push origin v1.0.2
 
 Locally: open the folder in Android Studio (JDK 17, Android SDK 35) and press Run, or use the included Gradle wrapper (`./gradlew assembleRelease`, Gradle 8.9).
 
-Both APKs are signed with the key committed in `app/debug.keystore`, so new builds install over old ones. This is fine for personal use, but it is not a Play Store release key.
+Releases are signed with a private key kept in GitHub Secrets; the workflow refuses to publish anything signed with the public debug key. Builds without that key (forks, local) fall back to the public `app/debug.keystore`, which is for testing only. See [SECURITY.md](SECURITY.md) to verify a download's signing certificate.
 
 ## Status and limitations
 
@@ -112,6 +112,10 @@ Both APKs are signed with the key committed in `app/debug.keystore`, so new buil
 ## Roadmap
 
 Import/export of network profiles · per-account usage notes · more battery tuning · IzzyOnDroid and F-Droid listing (in progress)
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for how releases are signed (with the fingerprint to check), how to report a vulnerability, and how your data is handled.
 
 ## License
 

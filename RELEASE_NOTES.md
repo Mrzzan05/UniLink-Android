@@ -1,13 +1,15 @@
-## UniLink Android v1.4.1
+## UniLink Android v1.5.0
 
-### What's new
-- **VPN fix.** With a VPN on, UniLink could suddenly stop signing in and keeping the session alive ("Binding socket to network … EPERM"). It now falls back to the VPN route when Android refuses a direct Wi-Fi connection, retries every minute at most, and reacts at once when a VPN starts or stops. If your VPN still blocks the portal, the app tells you what to change: exclude UniLink from the VPN tunnel, or allow the local network.
-- **Polish.** Clearer language chips, the activity log in a glass panel, a more visible Pause button.
-- Includes everything from 1.4.0: glass interface, home-screen widget, GPL-3.0-or-later license.
+### Security: new signing key
+Releases are now signed with a **private key** that is never stored in the repository. Before this, releases were signed with a debug key that is public in the repo, so anyone could have built an APK that Android accepts as an update to yours. The release workflow now refuses to publish an APK signed with that key.
 
-### Install
-Download `UniLink-v1.4.1.apk` below and install it over the previous version. Your accounts and settings are kept.
+### You must reinstall once
+Because the key changed, Android can't update 1.4.x in place:
+1. Note down your accounts (student numbers and passwords): they are removed with the app.
+2. Uninstall UniLink, then install `UniLink-v1.5.0.apk` from below.
+3. Add your accounts again. Updates after this install normally.
 
-Verify the download with `UniLink-v1.4.1.apk.sha256` if you like. Signed with the project's debug key.
+### Verify the download
+The signing certificate SHA-256 is at the bottom of these notes. Check it with `apksigner verify --print-certs UniLink-v1.5.0.apk` (see SECURITY.md). If it doesn't match, don't install the file.
 
 > Unofficial project, not affiliated with any university or with Sophos. Use only accounts you are allowed to use.

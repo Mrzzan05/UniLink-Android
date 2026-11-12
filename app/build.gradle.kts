@@ -12,22 +12,34 @@ android {
         applicationId = "ir.unilink.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.4.1"
+        versionCode = 8
+        versionName = "1.5.0"
 
         // Drop translations of libraries we don't ship a UI for (the app itself is en + fa).
         @Suppress("DEPRECATION")
         resourceConfigurations += listOf("en", "fa")
     }
 
-    // A fixed (committed) debug keystore keeps the APK signature identical across
-    // CI runs, so a new build installs over the old one without uninstalling first.
+    // Release builds are signed with a PRIVATE key that is never stored in the repository; CI gets
+    // it from GitHub Secrets (see SECURITY.md). The committed debug keystore is public, so it must
+    // only ever sign debug builds: anyone could sign an APK with it.
+    fun secret(name: String): String? = System.getenv(name)?.takeIf { it.isNotBlank() }
+    val releaseKeystore = secret("UNILINK_KEYSTORE_FILE")
+
     signingConfigs {
         getByName("debug") {
             storeFile = file("debug.keystore")
             storePassword = "android"
             keyAlias = "androiddebugkey"
             keyPassword = "android"
+        }
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = secret("UNILINK_KEYSTORE_PASSWORD")
+                keyAlias = secret("UNILINK_KEY_ALIAS")
+                keyPassword = secret("UNILINK_KEY_PASSWORD")
+            }
         }
     }
 
@@ -37,8 +49,9 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Signed with the committed key so new builds install over old ones (personal use).
-            signingConfig = signingConfigs.getByName("debug")
+            // Private release key when provided (CI); otherwise the public debug key, for local
+            // testing only. The release workflow refuses to publish a debug-signed APK.
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 
