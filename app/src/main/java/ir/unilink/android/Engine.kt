@@ -32,6 +32,8 @@ data class KeepaliveStats(
     val failed: Int = 0,
     val late: Int = 0,
     val maxLateSec: Long = 0L,
+    /** Wi-Fi/VPN callbacks received: helps tell whether network chatter wakes the CPU. */
+    val netEvents: Int = 0,
 )
 
 enum class Phase { Stopped, Paused, WaitingWifi, NeedCertificate, Connecting, Connected, WaitingRetry, AccountNeeded }
@@ -178,6 +180,7 @@ class Engine(private val ctx: Context, private val store: Store) {
     // ---------- main loop ----------
 
     private fun onNetworkEvent() {
+        _stats.update { it.copy(netEvents = it.netEvents + 1) }
         val t = tracker ?: return
         val n = t.network
         val sig = "${n?.networkHandle}|${n?.let { t.hasIpv4(it) }}|${t.ssid()}|vpn=${t.vpnUp}"
@@ -372,7 +375,9 @@ class Engine(private val ctx: Context, private val store: Store) {
             var usedUrl = ""
             var lastFailure = "No portal reachable"
             for (url in g.portalUrls) {
-                val r = PortalClient(net, g.pins[url]).login(url, acc.username, acc.password, g.quotaPhrases)
+                val client = PortalClient(net, g.pins[url])
+                val r = client.login(url, acc.username, acc.password, g.quotaPhrases)
+                noteReplyShape("login", client)
                 if (r is PortalResult.Failure) {
                     lastFailure = r.reason
                     log("Portal $url: ${r.reason}")
@@ -414,9 +419,9 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     private suspend fun doKeepalive(g: NetworkGroup, net: Network) {
         val s = session ?: return
-        val r = opLock.withLock {
-            PortalClient(net, g.pins[s.url]).keepalive(s.url, s.username, g.quotaPhrases)
-        }
+        val client = PortalClient(net, g.pins[s.url])
+        val r = opLock.withLock { client.keepalive(s.url, s.username, g.quotaPhrases) }
+        noteReplyShape("keepalive", client)
         val now = System.currentTimeMillis()
         // A keepalive that runs much later than scheduled means the CPU or radio was asleep.
         val lateSec = (now - nextKeepalive) / 1000
@@ -482,6 +487,14 @@ class Engine(private val ctx: Context, private val store: Store) {
     }
 
     // ---------- helpers ----------
+
+    private val shapesLogged = mutableSetOf<String>()
+
+    /** Logs each distinct set of reply element names once (names only, never values). */
+    private fun noteReplyShape(kind: String, c: PortalClient) {
+        val fields = c.replyFields ?: return
+        if (shapesLogged.add("$kind:$fields")) log("Portal $kind reply fields: $fields")
+    }
 
     /** UI text in the language chosen in Settings (log lines stay English on purpose). */
     private fun str(@StringRes id: Int, vararg args: Any): String = Lang.wrap(ctx).getString(id, *args)

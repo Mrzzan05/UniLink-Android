@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0
+- New: a **Network events** counter on the Connection tab. It counts the Wi-Fi and VPN callbacks the app receives, to help find out whether network chatter keeps the CPU awake (battery tuning).
+- New: the activity log notes which XML fields the portal's login and keepalive replies contain (names only, never values or credentials), once per kind. This shows whether the portal reports data usage, which a usage bar would need.
+
 ## 1.5.0
 - **Security: releases are now signed with a private key.** Until now releases were signed with a debug key that is public in the repository, which meant anyone could build an APK that Android would accept as an update. The new key lives only in GitHub Secrets and offline backups, and the release workflow refuses to publish an APK signed with the debug key. The signing certificate's SHA-256 is printed in each release's notes (see `SECURITY.md`).
 - **Because the signing key changed, Android will not update 1.4.x in place.** Uninstall the old version and install 1.5.0, then add your accounts again. Future updates install normally.

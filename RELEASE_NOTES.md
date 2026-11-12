@@ -1,15 +1,10 @@
-## UniLink Android v1.5.0
+## UniLink Android v1.6.0
 
-### Security: new signing key
-Releases are now signed with a **private key** that is never stored in the repository. Before this, releases were signed with a debug key that is public in the repo, so anyone could have built an APK that Android accepts as an update to yours. The release workflow now refuses to publish an APK signed with that key.
+### What's new
+- **Network events counter** on the Connection tab, for battery tuning: it shows how often Android reports Wi-Fi or VPN changes to the app.
+- **Reply diagnostics:** the Activity log now lists which fields the portal's replies contain (names only, no values, no credentials). This tells us whether the portal reports data usage.
 
-### You must reinstall once
-Because the key changed, Android can't update 1.4.x in place:
-1. Note down your accounts (student numbers and passwords): they are removed with the app.
-2. Uninstall UniLink, then install `UniLink-v1.5.0.apk` from below.
-3. Add your accounts again. Updates after this install normally.
-
-### Verify the download
-The signing certificate SHA-256 is at the bottom of these notes. Check it with `apksigner verify --print-certs UniLink-v1.5.0.apk` (see SECURITY.md). If it doesn't match, don't install the file.
+### Update
+Install `UniLink-v1.6.0.apk` over 1.5.0; accounts and settings are kept. The signing certificate SHA-256 is at the bottom of these notes (see SECURITY.md).
 
 > Unofficial project, not affiliated with any university or with Sophos. Use only accounts you are allowed to use.

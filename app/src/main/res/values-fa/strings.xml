@@ -22,6 +22,7 @@
     <string name="conn_pause">توقف و خروج</string>
     <string name="conn_keepalives">نگه‌داشت نشست</string>
     <string name="conn_keepalives_value">%1$d موفق · %2$d ناموفق</string>
+    <string name="conn_net_events">رویدادهای شبکه</string>
     <string name="conn_late">بیدار شدن دیرهنگام</string>
     <string name="conn_late_value">%1$d بار (بیشینه %2$d ثانیه)</string>
 

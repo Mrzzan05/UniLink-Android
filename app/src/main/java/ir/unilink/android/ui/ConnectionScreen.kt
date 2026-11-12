@@ -100,6 +100,7 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
                 stringResource(R.string.conn_keepalives),
                 stringResource(R.string.conn_keepalives_value, stats.ok, stats.failed),
             )
+            InfoRow(stringResource(R.string.conn_net_events), stats.netEvents.toString())
             if (stats.late > 0) {
                 InfoRow(
                     stringResource(R.string.conn_late),

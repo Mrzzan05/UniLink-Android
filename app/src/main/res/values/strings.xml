@@ -22,6 +22,7 @@
     <string name="conn_pause">Pause &amp; sign out</string>
     <string name="conn_keepalives">Keepalives</string>
     <string name="conn_keepalives_value">%1$d ok · %2$d failed</string>
+    <string name="conn_net_events">Network events</string>
     <string name="conn_late">Late wake-ups</string>
     <string name="conn_late_value">%1$d (longest %2$d s)</string>
 

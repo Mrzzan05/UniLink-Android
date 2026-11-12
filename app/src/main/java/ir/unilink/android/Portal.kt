@@ -53,6 +53,11 @@ object PortalParser {
         return (m.groups[1]?.value ?: m.groups[2]?.value ?: "").trim()
     }
 
+    /** Names (never values) of the XML elements in a reply, to learn what the portal reports. */
+    fun fieldNames(xml: String): String =
+        Regex("<([A-Za-z_][A-Za-z0-9_.:-]*)").findAll(xml)
+            .map { it.groupValues[1] }.distinct().take(25).joinToString(", ")
+
     fun classify(xml: String, isLogin: Boolean, extraQuotaPhrases: List<String>): PortalResult {
         val status = tag(xml, "status").orEmpty()
         val ack = tag(xml, "ack").orEmpty()
@@ -108,6 +113,10 @@ fun sha256Hex(bytes: ByteArray): String =
  * the system proxy is ignored, redirects are refused and the certificate must match the pin.
  */
 class PortalClient(private val network: Network, private val pin: String?) {
+    /** Element names of the last reply (diagnostics only; no values). */
+    @Volatile var replyFields: String? = null
+        private set
+
     companion object {
         const val VPN_BLOCKED =
             "VPN blocks UniLink from reaching the Wi-Fi (EPERM). In your VPN app, exclude UniLink from the tunnel or allow the local network."
@@ -165,6 +174,7 @@ class PortalClient(private val network: Network, private val pin: String?) {
             buildClient(cap, bound).newCall(request).execute().use { resp ->
                 if (resp.isRedirect) return PortalResult.Failure("Redirect rejected by policy")
                 val body = resp.peekBody(65536).string()
+                replyFields = PortalParser.fieldNames(body)
                 val result = PortalParser.classify(body, isLogin, extra)
                 if (result is PortalResult.Failure && !resp.isSuccessful) {
                     PortalResult.Failure("HTTP ${resp.code}")
