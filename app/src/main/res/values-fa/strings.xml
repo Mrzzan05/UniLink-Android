@@ -170,4 +170,9 @@
     <string name="widget_desc">وضعیت ورود را نشان می‌دهد و با یک ضربه وصل یا متوقف می‌کند.</string>
     <string name="widget_connect">اتصال</string>
     <string name="widget_pause">توقف</string>
+    <string name="set_theme_title">ظاهر</string>
+    <string name="set_theme_system">سیستم</string>
+    <string name="set_theme_light">روشن</string>
+    <string name="set_theme_dark">تیره</string>
+    <string name="set_theme_midnight">نیمه‌شب</string>
 </resources>

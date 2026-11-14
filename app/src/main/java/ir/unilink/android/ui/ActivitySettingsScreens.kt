@@ -172,6 +172,31 @@ fun SettingsScreen(app: UniLinkApp) {
         }
 
         Panel {
+            Text(stringResource(R.string.set_theme_title), style = MaterialTheme.typography.titleMedium)
+            Row(
+                Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                listOf(
+                    ThemePrefs.SYSTEM to R.string.set_theme_system,
+                    ThemePrefs.LIGHT to R.string.set_theme_light,
+                    ThemePrefs.DARK to R.string.set_theme_dark,
+                    ThemePrefs.MIDNIGHT to R.string.set_theme_midnight,
+                ).forEach { (code, label) ->
+                    FilterChip(
+                        selected = ThemePrefs.mode == code,
+                        onClick = { ThemePrefs.set(ctx, code) },
+                        label = { Text(stringResource(label)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                            selectedLabelColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    )
+                }
+            }
+        }
+
+        Panel {
             SwitchRow(
                 stringResource(R.string.set_auto_title),
                 stringResource(R.string.set_auto_sub),

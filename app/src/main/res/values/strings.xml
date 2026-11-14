@@ -170,4 +170,9 @@
     <string name="widget_desc">Shows the sign-in status and connects or pauses with one tap.</string>
     <string name="widget_connect">Connect</string>
     <string name="widget_pause">Pause</string>
+    <string name="set_theme_title">Appearance</string>
+    <string name="set_theme_system">System</string>
+    <string name="set_theme_light">Light</string>
+    <string name="set_theme_dark">Dark</string>
+    <string name="set_theme_midnight">Midnight</string>
 </resources>

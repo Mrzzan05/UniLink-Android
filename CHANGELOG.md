@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.1
+- New: **swipe left or right** to change tabs. The tab bar follows your finger and the page under it shrinks and fades slightly.
+- New: **Appearance** setting with System, Light, Dark and **Midnight**. Midnight is a deeper, near-black version of the dark look with a stronger blue and violet glow. The status bar icons follow the chosen look.
+- Fix: the add (+) button sat a little higher on Accounts than on Networks; both now share the same position.
+
 ## 1.7.0
 - **Smoother interface.** The floating navigation bar now slides: the selected tab expands to show its label with a spring, others shrink to an icon. Switching tabs slides and fades in the direction you are moving. The status badge morphs between icons, changes colour smoothly, pops when the state changes and shows a ring while connecting. Cards enter one after another, panels animate when their content changes, buttons shrink slightly under your finger and give a light haptic tick, list items animate when added, removed or moved, and Back returns to the first tab before closing the app (with the Android 13+ back preview).
 - No new libraries; the animation code is original and uses only Jetpack Compose.

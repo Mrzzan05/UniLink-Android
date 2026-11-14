@@ -17,6 +17,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        ir.unilink.android.ui.ThemePrefs.load(this)
         val app = application as UniLinkApp
         if (app.store.data.value.settings.autoSignIn) {
             runCatching { KeepAliveService.start(this) }

@@ -56,7 +56,7 @@ fun GlassBackdrop(modifier: Modifier = Modifier, content: @Composable () -> Unit
                 val b = Offset(size.width * 0.9f, size.height * 0.62f)
                 val ra = size.maxDimension * 0.55f
                 val rb = size.maxDimension * 0.5f
-                val strength = if (g.dark) 0.5f else 0.6f
+                val strength = g.blobStrength
                 drawCircle(
                     Brush.radialGradient(listOf(g.blobA.copy(alpha = strength), Color.Transparent), a, ra),
                     ra, a,

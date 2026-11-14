@@ -2,21 +2,22 @@ package ir.unilink.android.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,10 +44,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,14 +67,20 @@ private val tabs = listOf(
     TabItem(R.string.tab_settings, Icons.Default.Settings),
 )
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppRoot(app: UniLinkApp) {
-    var tab by rememberSaveable { mutableIntStateOf(0) }
+    val pager = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
+    val scope = rememberCoroutineScope()
     val tick = rememberTick()
+    val selected = pager.targetPage
+
+    fun goTo(i: Int) {
+        scope.launch { pager.animateScrollToPage(i, animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessLow)) }
+    }
 
     // Back from any other tab returns to the first one before the app closes.
-    BackHandler(enabled = tab != 0) { tab = 0 }
+    BackHandler(enabled = pager.currentPage != 0) { goTo(0) }
 
     GlassBackdrop {
         Scaffold(
@@ -93,18 +97,18 @@ fun AppRoot(app: UniLinkApp) {
                             tabs.forEachIndexed { i, t ->
                                 NavPill(
                                     item = t,
-                                    selected = tab == i,
+                                    selected = selected == i,
                                     modifier = Modifier.weight(
                                         animateFloatAsState(
-                                            if (tab == i) 2.1f else 1f,
+                                            if (selected == i) 2.1f else 1f,
                                             bouncySpring(),
                                             label = "tabWeight",
                                         ).value,
                                     ),
                                 ) {
-                                    if (tab != i) {
+                                    if (selected != i) {
                                         tick()
-                                        tab = i
+                                        goTo(i)
                                     }
                                 }
                             }
@@ -113,22 +117,24 @@ fun AppRoot(app: UniLinkApp) {
                 }
             },
         ) { padding ->
-            Box(Modifier.padding(padding).fillMaxSize()) {
-                AnimatedContent(
-                    targetState = tab,
-                    transitionSpec = {
-                        val dir = if (targetState > initialState) 1 else -1
-                        (fadeIn(tween(260, delayMillis = 70)) +
-                            slideInHorizontally(tween(320, easing = FastOutSlowInEasing)) { it / 9 * dir } +
-                            scaleIn(tween(320, easing = FastOutSlowInEasing), initialScale = 0.96f)) togetherWith
-                            (fadeOut(tween(110)) +
-                                slideOutHorizontally(tween(260, easing = FastOutSlowInEasing)) { -it / 9 * dir }) using
-                            SizeTransform(clip = false)
+            // Swipe left/right between tabs; the page under your finger shrinks and fades slightly.
+            HorizontalPager(
+                state = pager,
+                modifier = Modifier.padding(padding).fillMaxSize(),
+                beyondViewportPageCount = tabs.size,
+                key = { it },
+            ) { page ->
+                Box(
+                    Modifier.fillMaxSize().graphicsLayer {
+                        val off = abs((pager.currentPage - page) + pager.currentPageOffsetFraction).coerceIn(0f, 1f)
+                        alpha = 1f - 0.55f * off
+                        val sc = 1f - 0.06f * off
+                        scaleX = sc
+                        scaleY = sc
                     },
-                    label = "tabs",
-                ) { t ->
-                    when (t) {
-                        0 -> ConnectionScreen(app) { tab = it }
+                ) {
+                    when (page) {
+                        0 -> ConnectionScreen(app) { goTo(it) }
                         1 -> AccountsScreen(app)
                         2 -> NetworksScreen(app)
                         3 -> ActivityScreen(app)

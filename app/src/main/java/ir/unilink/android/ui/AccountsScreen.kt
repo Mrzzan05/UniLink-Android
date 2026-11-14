@@ -55,7 +55,7 @@ fun AccountsScreen(app: UniLinkApp) {
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     val group = data.groups.firstOrNull { it.id == selectedId } ?: data.groups.firstOrNull()
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 16.dp)) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp).padding(top = 16.dp)) {
         ScreenTitle(stringResource(R.string.tab_accounts))
         if (group == null) {
             Text(
