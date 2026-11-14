@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.1
+- Fix: on the Activity tab the log card ran underneath the tab bar and showed a double outline. It now ends above the bar.
+- Fix: scrolled text showed through the translucent tab bar on all three themes. The bar now has an opaque underlay.
+- Content that scrolls under the status bar now fades out softly instead of being cut with a hard edge.
+
 ## 1.8.0
 - **Midnight is now a true AMOLED theme**: pure black background, a deep blue glow at the top only, darker cards and a darker tab bar with a faint edge, and brighter borders on choice buttons.
 - Accounts: round initials avatars, and the Default tag moves next to the account name so every card has the same height.

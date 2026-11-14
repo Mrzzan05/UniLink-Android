@@ -55,7 +55,7 @@ fun ActivityScreen(app: UniLinkApp) {
     val ctx = LocalContext.current
     val subject = stringResource(R.string.act_share_subject)
     val chooser = stringResource(R.string.act_share_chooser)
-    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(Modifier.fillMaxSize().padding(16.dp).padding(bottom = LocalBarPad.current), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         ScreenTitle(stringResource(R.string.tab_activity))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = {
@@ -85,7 +85,7 @@ fun ActivityScreen(app: UniLinkApp) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 LazyColumn(
                     Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 8.dp + LocalBarPad.current),
+                    contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
                 ) {
                     items(log.asReversed()) { line -> LogLine(line) }
                 }

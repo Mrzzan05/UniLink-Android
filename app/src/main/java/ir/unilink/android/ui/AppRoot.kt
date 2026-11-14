@@ -11,6 +11,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -102,6 +106,8 @@ fun AppRoot(app: UniLinkApp) {
             contentColor = MaterialTheme.colorScheme.onBackground,
             bottomBar = {
                 Box(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    val g = LocalGlass.current
+                    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(30.dp)).background(g.backdropBottom.copy(alpha = 0.94f))) {
                     GlassSurface(Modifier.fillMaxWidth(), strong = true, shape = RoundedCornerShape(30.dp)) {
                         Row(
                             Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 6.dp),
@@ -128,13 +134,25 @@ fun AppRoot(app: UniLinkApp) {
                             }
                         }
                     }
+                    }
                 }
             },
         ) { padding ->
             // Swipe left/right between tabs; the page under your finger shrinks and fades slightly.
             HorizontalPager(
                 state = pager,
-                modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize(),
+                modifier = Modifier
+                    .padding(top = padding.calculateTopPadding())
+                    .fillMaxSize()
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        val f = 16.dp.toPx() / size.height
+                        drawRect(
+                            Brush.verticalGradient(0f to Color.Transparent, f to Color.Black, 1f to Color.Black),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    },
                 beyondViewportPageCount = tabs.size,
                 key = { it },
             ) { page ->
