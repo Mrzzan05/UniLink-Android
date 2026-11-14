@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.8.0
+- **Midnight is now a true AMOLED theme**: pure black background, a deep blue glow at the top only, darker cards and a darker tab bar with a faint edge, and brighter borders on choice buttons.
+- Accounts: round initials avatars, and the Default tag moves next to the account name so every card has the same height.
+- Settings: Language and Appearance are full-width choice rows with centred labels.
+- Networks: Delete is shown in red.
+- Activity: the time is dim and monospaced, "Signed in" is green, drops and failures are amber, and entries are separated by a thin line.
+- Light theme: a visible card border and a softer glow behind the status icon.
+- The last item in a scrolling tab is no longer cut off by the floating tab bar. The Connection tab has a Wi-Fi icon, and Pause looks dimmer when you are not signed in.
+
 ## 1.7.1
 - New: **swipe left or right** to change tabs. The tab bar follows your finger and the page under it shrinks and fades slightly.
 - New: **Appearance** setting with System, Light, Dark and **Midnight**. Midnight is a deeper, near-black version of the dark look with a stronger blue and violet glow. The status bar icons follow the chosen look.

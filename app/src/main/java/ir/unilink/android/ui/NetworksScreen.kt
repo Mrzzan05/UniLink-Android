@@ -51,7 +51,7 @@ fun NetworksScreen(app: UniLinkApp) {
             ScreenTitle(stringResource(R.string.tab_networks))
             LazyColumn(
                 Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp),
+                contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp + LocalBarPad.current),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(data.groups, key = { it.id }) { g ->
@@ -84,7 +84,10 @@ fun NetworksScreen(app: UniLinkApp) {
                                     app.engine.kick()
                                 }) { Text(stringResource(R.string.net_forget_certs)) }
                             }
-                            TextButton(onClick = { deleting = g }) { Text(stringResource(R.string.common_delete)) }
+                            TextButton(
+                                onClick = { deleting = g },
+                                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                            ) { Text(stringResource(R.string.common_delete)) }
                         }
                     }
                 }
@@ -92,7 +95,7 @@ fun NetworksScreen(app: UniLinkApp) {
         }
         FloatingActionButton(
             onClick = { adding = true },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp + LocalBarPad.current),
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
         ) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.net_add_cd)) }

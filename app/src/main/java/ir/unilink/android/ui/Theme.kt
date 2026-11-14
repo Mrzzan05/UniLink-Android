@@ -33,7 +33,8 @@ data class GlassColors(
     val red: Color,
     val grey: Color,
     val blue: Color,
-    val blobStrength: Float,
+    val blobAStrength: Float,
+    val blobBStrength: Float,
 )
 
 private val DarkGlass = GlassColors(
@@ -51,7 +52,8 @@ private val DarkGlass = GlassColors(
     red = Color(0xFFFF6B6B),
     grey = Color(0xFF8A97AD),
     blue = Color(0xFF6FA8FF),
-    blobStrength = 0.5f,
+    blobAStrength = 0.5f,
+    blobBStrength = 0.4f,
 )
 
 private val LightGlass = GlassColors(
@@ -63,32 +65,34 @@ private val LightGlass = GlassColors(
     glassFill = Color(0x80FFFFFF),
     glassFillStrong = Color(0xB3FFFFFF),
     glassEdgeHi = Color(0xE6FFFFFF),
-    glassEdgeLo = Color(0x33FFFFFF),
+    glassEdgeLo = Color(0x4D3A5FA8),
     green = Color(0xFF0E9F55),
     amber = Color(0xFFC77700),
     red = Color(0xFFD93A3A),
     grey = Color(0xFF5E6B82),
     blue = Color(0xFF2A62D9),
-    blobStrength = 0.6f,
+    blobAStrength = 0.6f,
+    blobBStrength = 0.48f,
 )
 
 /** Deeper, near-black version of the dark look with stronger blue and violet glow. */
 private val MidnightGlass = GlassColors(
     dark = true,
-    backdropTop = Color(0xFF03050C),
-    backdropBottom = Color(0xFF080615),
+    backdropTop = Color(0xFF000000),
+    backdropBottom = Color(0xFF000000),
     blobA = Color(0xFF2458FF),
-    blobB = Color(0xFFA23CFF),
-    glassFill = Color(0x12FFFFFF),
-    glassFillStrong = Color(0x26FFFFFF),
-    glassEdgeHi = Color(0x80B8CCFF),
-    glassEdgeLo = Color(0x0AFFFFFF),
-    green = Color(0xFF38F29A),
+    blobB = Color(0xFF8B3CFF),
+    glassFill = Color(0xA60A0D18),
+    glassFillStrong = Color(0xE60B0E1A),
+    glassEdgeHi = Color(0x66A9BEFF),
+    glassEdgeLo = Color(0x1AFFFFFF),
+    green = Color(0xFF5BF5AE),
     amber = Color(0xFFFFC857),
     red = Color(0xFFFF5C7A),
     grey = Color(0xFF7C88A6),
     blue = Color(0xFF7DB2FF),
-    blobStrength = 0.78f,
+    blobAStrength = 0.8f,
+    blobBStrength = 0.16f,
 )
 
 val LocalGlass = staticCompositionLocalOf { DarkGlass }
@@ -143,9 +147,11 @@ private val MidnightScheme = DarkScheme.copy(
     primary = Color(0xFF7DB2FF),
     onPrimary = Color(0xFF001B4D),
     primaryContainer = Color(0xFF16336E),
-    background = Color(0xFF03050C),
-    surface = Color(0xFF03050C),
+    background = Color(0xFF000000),
+    surface = Color(0xFF000000),
     surfaceVariant = Color(0xFF111628),
+    outlineVariant = Color(0x55B8C8FF),
+    outline = Color(0xFF5D6C94),
     surfaceContainer = Color(0xFF0D1224),
     surfaceContainerHigh = Color(0xFF121933),
     surfaceContainerHighest = Color(0xFF18213F),

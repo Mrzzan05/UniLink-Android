@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
@@ -21,6 +22,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -56,13 +63,12 @@ fun GlassBackdrop(modifier: Modifier = Modifier, content: @Composable () -> Unit
                 val b = Offset(size.width * 0.9f, size.height * 0.62f)
                 val ra = size.maxDimension * 0.55f
                 val rb = size.maxDimension * 0.5f
-                val strength = g.blobStrength
-                drawCircle(
-                    Brush.radialGradient(listOf(g.blobA.copy(alpha = strength), Color.Transparent), a, ra),
+                                drawCircle(
+                    Brush.radialGradient(listOf(g.blobA.copy(alpha = g.blobAStrength), Color.Transparent), a, ra),
                     ra, a,
                 )
                 drawCircle(
-                    Brush.radialGradient(listOf(g.blobB.copy(alpha = strength * 0.8f), Color.Transparent), b, rb),
+                    Brush.radialGradient(listOf(g.blobB.copy(alpha = g.blobBStrength), Color.Transparent), b, rb),
                     rb, b,
                 )
             },
@@ -133,4 +139,46 @@ fun rememberResumeTick(): Int {
         onDispose { owner?.lifecycle?.removeObserver(observer) }
     }
     return tick
+}
+
+/** Height of the floating tab bar; scrolling screens add it as bottom padding so nothing is cut off. */
+val LocalBarPad = compositionLocalOf { 0.dp }
+
+/** A full-width row of equally sized choices (used for language and appearance). */
+@Composable
+fun ChoiceRow(options: List<Pair<String, String>>, selected: String, onSelect: (String) -> Unit) {
+    val g = LocalGlass.current
+    val primary = MaterialTheme.colorScheme.primary
+    val tick = rememberTick()
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { (code, label) ->
+            val on = code == selected
+            val src = remember { MutableInteractionSource() }
+            val shape = RoundedCornerShape(14.dp)
+            Box(
+                Modifier
+                    .weight(1f)
+                    .height(42.dp)
+                    .pressScale(src, 0.95f)
+                    .clip(shape)
+                    .background(if (on) primary.copy(alpha = 0.25f) else Color.Transparent)
+                    .border(1.dp, if (on) primary.copy(alpha = 0.6f) else g.glassEdgeHi.copy(alpha = 0.35f), shape)
+                    .clickable(interactionSource = src, indication = null) {
+                        if (!on) {
+                            tick()
+                            onSelect(code)
+                        }
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    label,
+                    color = if (on) primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
 }

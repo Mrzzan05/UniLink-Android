@@ -27,6 +27,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -122,15 +127,29 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
         }
         LazyColumn(
             Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp),
+            contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp + LocalBarPad.current),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items(group.accounts, key = { it.id }) { acc ->
                 val index = group.accounts.indexOfFirst { it.id == acc.id }
                 Panel(Modifier.animateItem()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(44.dp).background(AccentBlue.copy(alpha = 0.20f), CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                acc.name.trim().take(2).uppercase().ifEmpty { "?" },
+                                color = AccentBlue,
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(acc.name, style = MaterialTheme.typography.titleMedium)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(acc.name, style = MaterialTheme.typography.titleMedium)
+                                if (index == 0) Tag(stringResource(R.string.tag_default), AccentBlue)
+                            }
                             Text(
                                 acc.username,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -145,11 +164,10 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
                             onAction = { act(acc, it) },
                         )
                     }
-                    Row(
+                    if (status.accountId == acc.id || !acc.enabled || acc.passwordRejected || acc.isExhaustedNow(group, now)) Row(
                         Modifier.horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        if (index == 0) Tag(stringResource(R.string.tag_default), AccentBlue)
                         if (status.accountId == acc.id) Tag(stringResource(R.string.tag_in_use), StatusGreen)
                         if (!acc.enabled) Tag(stringResource(R.string.tag_disabled), StatusGrey)
                         if (acc.passwordRejected) Tag(stringResource(R.string.tag_password_rejected), StatusRed)
@@ -160,7 +178,7 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
         }
         FloatingActionButton(
             onClick = { adding = true },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp + LocalBarPad.current),
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
         ) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.acc_add_cd)) }

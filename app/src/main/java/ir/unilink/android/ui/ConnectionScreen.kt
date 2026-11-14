@@ -90,7 +90,8 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(bottom = LocalBarPad.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(Modifier.staggerIn(0)) { ScreenTitle(stringResource(R.string.tab_connection)) }
@@ -156,8 +157,8 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
                 interactionSource = pauseSrc,
                 modifier = Modifier.weight(1f).height(52.dp).pressScale(pauseSrc),
                 shape = RoundedCornerShape(26.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
-            ) { Text(stringResource(R.string.conn_pause)) }
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = if (st.phase == Phase.Connected || st.phase == Phase.Connecting || st.phase == Phase.WaitingRetry) 0.6f else 0.25f)),
+            ) { Text(stringResource(R.string.conn_pause), modifier = Modifier.alpha(if (st.phase == Phase.Connected || st.phase == Phase.Connecting || st.phase == Phase.WaitingRetry) 1f else 0.55f)) }
         }
     }
 }
@@ -244,7 +245,7 @@ private fun StatusHero(
                         val ctr = Offset(size.width / 2, size.height / 2)
                         val r = size.minDimension * 0.95f
                         drawCircle(
-                            Brush.radialGradient(listOf(c.copy(alpha = 0.40f * glow), Color.Transparent), ctr, r),
+                            Brush.radialGradient(listOf(c.copy(alpha = (if (LocalGlass.current.dark) 0.40f else 0.16f) * glow), Color.Transparent), ctr, r),
                             r, ctr,
                         )
                         if (pulsing) {

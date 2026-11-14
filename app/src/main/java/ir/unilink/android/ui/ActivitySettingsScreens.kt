@@ -85,12 +85,9 @@ fun ActivityScreen(app: UniLinkApp) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 LazyColumn(
                     Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 8.dp + LocalBarPad.current),
                 ) {
-                    items(log.asReversed()) { line ->
-                        Text(line, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
-                    }
+                    items(log.asReversed()) { line -> LogLine(line) }
                 }
             }
         }
@@ -136,64 +133,38 @@ fun SettingsScreen(app: UniLinkApp) {
     val batteryOk = remember(tick) { batteryUnrestricted(ctx) }
 
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp).padding(bottom = LocalBarPad.current),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         ScreenTitle(stringResource(R.string.tab_settings))
 
         Panel {
             Text(stringResource(R.string.set_lang_title), style = MaterialTheme.typography.titleMedium)
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            ChoiceRow(
                 listOf(
-                    Lang.SYSTEM to R.string.set_lang_system,
-                    Lang.EN to R.string.set_lang_en,
-                    Lang.FA to R.string.set_lang_fa,
-                ).forEach { (code, label) ->
-                    FilterChip(
-                        selected = lang == code,
-                        onClick = {
-                            if (lang != code) {
-                                lang = code
-                                Lang.set(ctx, code)
-                                (ctx as? Activity)?.recreate()
-                            }
-                        },
-                        label = { Text(stringResource(label)) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                            selectedLabelColor = MaterialTheme.colorScheme.primary,
-                        ),
-                    )
-                }
+                    Lang.SYSTEM to stringResource(R.string.set_lang_system),
+                    Lang.EN to stringResource(R.string.set_lang_en),
+                    Lang.FA to stringResource(R.string.set_lang_fa),
+                ),
+                lang,
+            ) { code ->
+                lang = code
+                Lang.set(ctx, code)
+                (ctx as? Activity)?.recreate()
             }
         }
 
         Panel {
             Text(stringResource(R.string.set_theme_title), style = MaterialTheme.typography.titleMedium)
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            ChoiceRow(
                 listOf(
-                    ThemePrefs.SYSTEM to R.string.set_theme_system,
-                    ThemePrefs.LIGHT to R.string.set_theme_light,
-                    ThemePrefs.DARK to R.string.set_theme_dark,
-                    ThemePrefs.MIDNIGHT to R.string.set_theme_midnight,
-                ).forEach { (code, label) ->
-                    FilterChip(
-                        selected = ThemePrefs.mode == code,
-                        onClick = { ThemePrefs.set(ctx, code) },
-                        label = { Text(stringResource(label)) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                            selectedLabelColor = MaterialTheme.colorScheme.primary,
-                        ),
-                    )
-                }
-            }
+                    ThemePrefs.SYSTEM to stringResource(R.string.set_theme_system),
+                    ThemePrefs.LIGHT to stringResource(R.string.set_theme_light),
+                    ThemePrefs.DARK to stringResource(R.string.set_theme_dark),
+                    ThemePrefs.MIDNIGHT to stringResource(R.string.set_theme_midnight),
+                ),
+                ThemePrefs.mode,
+            ) { code -> ThemePrefs.set(ctx, code) }
         }
 
         Panel {
@@ -253,5 +224,36 @@ fun SettingsScreen(app: UniLinkApp) {
             },
             modifier = Modifier.padding(top = 6.dp),
         ) { Text(stringResource(R.string.set_exit)) }
+    }
+}
+
+private val timePrefix = Regex("^(\\d\\d:\\d\\d:\\d\\d)\\s+(.*)$", RegexOption.DOT_MATCHES_ALL)
+
+/** One log entry: dim monospace time, message coloured by kind, thin divider below. */
+@Composable
+private fun LogLine(line: String) {
+    val m = timePrefix.matchEntire(line)
+    val time = m?.groupValues?.get(1)
+    val msg = m?.groupValues?.get(2) ?: line
+    val low = msg.lowercase()
+    val color = when {
+        low.startsWith("signed in") -> StatusGreen
+        "dropped" in low || "failed" in low || "rejected" in low || "error" in low || "blocked" in low -> StatusAmber
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    Column {
+        Row(Modifier.padding(vertical = 7.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (time != null) {
+                Text(
+                    time,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 1.dp),
+                )
+            }
+            Text(msg, fontSize = 13.sp, lineHeight = 17.sp, color = color, modifier = Modifier.weight(1f))
+        }
+        androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f))
     }
 }

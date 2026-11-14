@@ -36,20 +36,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,7 +62,7 @@ import ir.unilink.android.UniLinkApp
 private data class TabItem(@StringRes val label: Int, val icon: ImageVector)
 
 private val tabs = listOf(
-    TabItem(R.string.tab_connection, Icons.Default.Refresh),
+    TabItem(R.string.tab_connection, WifiIcon),
     TabItem(R.string.tab_accounts, Icons.Default.Person),
     TabItem(R.string.tab_networks, Icons.Default.Place),
     TabItem(R.string.tab_activity, Icons.AutoMirrored.Filled.List),
@@ -120,7 +122,7 @@ fun AppRoot(app: UniLinkApp) {
             // Swipe left/right between tabs; the page under your finger shrinks and fades slightly.
             HorizontalPager(
                 state = pager,
-                modifier = Modifier.padding(padding).fillMaxSize(),
+                modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize(),
                 beyondViewportPageCount = tabs.size,
                 key = { it },
             ) { page ->
@@ -133,12 +135,14 @@ fun AppRoot(app: UniLinkApp) {
                         scaleY = sc
                     },
                 ) {
-                    when (page) {
-                        0 -> ConnectionScreen(app) { goTo(it) }
-                        1 -> AccountsScreen(app)
-                        2 -> NetworksScreen(app)
-                        3 -> ActivityScreen(app)
-                        else -> SettingsScreen(app)
+                    CompositionLocalProvider(LocalBarPad provides padding.calculateBottomPadding()) {
+                        when (page) {
+                            0 -> ConnectionScreen(app) { goTo(it) }
+                            1 -> AccountsScreen(app)
+                            2 -> NetworksScreen(app)
+                            3 -> ActivityScreen(app)
+                            else -> SettingsScreen(app)
+                        }
                     }
                 }
             }
@@ -189,4 +193,16 @@ private fun NavPill(item: TabItem, selected: Boolean, modifier: Modifier, onClic
             }
         }
     }
+}
+
+/** Material "wifi" glyph (Apache-2.0 path data); the core icon set has none. */
+private val WifiIcon: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "Wifi", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f,
+    ).addPath(
+        pathData = PathParser().parsePathString(
+            "M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z",
+        ).toNodes(),
+        fill = SolidColor(Color.Black),
+    ).build()
 }
