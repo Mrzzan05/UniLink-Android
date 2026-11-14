@@ -220,6 +220,7 @@ private fun StatusHero(
         label = "ring",
     )
     val glow = if (pulsing) pulse else 1f
+    val glowBase = if (LocalGlass.current.dark) 0.40f else 0.16f
     val c by animateColorAsState(color, tween(450), label = "heroColor")
 
     val pop = remember { Animatable(1f) }
@@ -245,7 +246,7 @@ private fun StatusHero(
                         val ctr = Offset(size.width / 2, size.height / 2)
                         val r = size.minDimension * 0.95f
                         drawCircle(
-                            Brush.radialGradient(listOf(c.copy(alpha = (if (LocalGlass.current.dark) 0.40f else 0.16f) * glow), Color.Transparent), ctr, r),
+                            Brush.radialGradient(listOf(c.copy(alpha = glowBase * glow), Color.Transparent), ctr, r),
                             r, ctr,
                         )
                         if (pulsing) {
