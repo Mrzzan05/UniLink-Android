@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.0
+- **Smoother interface.** The floating navigation bar now slides: the selected tab expands to show its label with a spring, others shrink to an icon. Switching tabs slides and fades in the direction you are moving. The status badge morphs between icons, changes colour smoothly, pops when the state changes and shows a ring while connecting. Cards enter one after another, panels animate when their content changes, buttons shrink slightly under your finger and give a light haptic tick, list items animate when added, removed or moved, and Back returns to the first tab before closing the app (with the Android 13+ back preview).
+- No new libraries; the animation code is original and uses only Jetpack Compose.
+- Includes the 1.6.1 battery fix.
+
+## 1.6.1
+- **Battery fix.** The CPU wake lock and the Wi-Fi lock were held for as long as the service ran, even when the phone was not on campus Wi-Fi (for example at home, or while waiting for the network). On one test phone that meant a wake lock for about 12 h 42 m in a day and roughly 10% of the battery. The locks are now held only while the app is connecting, signed in, or retrying on campus Wi-Fi, and released otherwise.
+
 ## 1.6.0
 - New: a **Network events** counter on the Connection tab. It counts the Wi-Fi and VPN callbacks the app receives, to help find out whether network chatter keeps the CPU awake (battery tuning).
 - New: the activity log notes which XML fields the portal's login and keepalive replies contain (names only, never values or credentials), once per kind. This shows whether the portal reports data usage, which a usage bar would need.

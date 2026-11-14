@@ -119,9 +119,9 @@
     <string name="set_boot_title">Start when the phone boots</string>
     <string name="set_boot_sub">Starts the background service after a restart.</string>
     <string name="set_wake_title">Keep CPU awake</string>
-    <string name="set_wake_sub">Keeps the processor running with the screen off so keepalive timers fire on time. The most reliable setting; uses more battery.</string>
+    <string name="set_wake_sub">Keeps the processor running with the screen off so keepalive timers fire on time. The most reliable setting; uses more battery. Only held while you are signed in to campus Wi-Fi.</string>
     <string name="set_wifi_title">Keep Wi-Fi at full power</string>
-    <string name="set_wifi_sub">Stops the Wi-Fi radio from power-saving with the screen off. If battery use is high, try turning this off first, then watch the Connection tab for failed or late keepalives.</string>
+    <string name="set_wifi_sub">Stops the Wi-Fi radio from power-saving with the screen off. If battery use is high, try turning this off first, then watch the Connection tab for failed or late keepalives. Only held while you are signed in to campus Wi-Fi.</string>
     <string name="set_perm_title">Permissions</string>
     <string name="set_loc_title">Location (reads the Wi-Fi name)</string>
     <string name="set_loc_sub">Needed to recognise UUWN.</string>

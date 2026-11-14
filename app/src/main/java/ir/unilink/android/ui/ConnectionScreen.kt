@@ -1,6 +1,23 @@
 package ir.unilink.android.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -76,9 +93,11 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        ScreenTitle(stringResource(R.string.tab_connection))
+        Box(Modifier.staggerIn(0)) { ScreenTitle(stringResource(R.string.tab_connection)) }
 
         StatusHero(
+            modifier = Modifier.staggerIn(1),
+            phaseKey = st.phase.ordinal,
             color = color,
             icon = when (st.phase) {
                 Phase.Connected -> Icons.Default.Check
@@ -91,7 +110,7 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
             detail = st.detail,
         )
 
-        Panel {
+        Panel(Modifier.staggerIn(2)) {
             InfoRow(stringResource(R.string.conn_network), st.groupName ?: "—")
             InfoRow(stringResource(R.string.conn_account), st.accountName ?: "—")
             InfoRow(stringResource(R.string.conn_last_keepalive), formatTime(st.lastKeepalive))
@@ -113,20 +132,29 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
             CertificateCard(prompt) { app.engine.approveCertificate(prompt) }
         }
 
-        SetupChecklist(app, goToTab)
+        Box(Modifier.staggerIn(3)) { SetupChecklist(app, goToTab) }
 
-        Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val tick = rememberTick()
+        val connectSrc = remember { MutableInteractionSource() }
+        val pauseSrc = remember { MutableInteractionSource() }
+        Row(Modifier.padding(top = 4.dp).staggerIn(4), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 onClick = {
+                    tick()
                     KeepAliveService.start(ctx)
                     app.engine.connectNow()
                 },
-                modifier = Modifier.weight(1f).height(52.dp),
+                interactionSource = connectSrc,
+                modifier = Modifier.weight(1f).height(52.dp).pressScale(connectSrc),
                 shape = RoundedCornerShape(26.dp),
             ) { Text(stringResource(R.string.conn_connect)) }
             OutlinedButton(
-                onClick = { app.engine.pauseAndSignOut() },
-                modifier = Modifier.weight(1f).height(52.dp),
+                onClick = {
+                    tick()
+                    app.engine.pauseAndSignOut()
+                },
+                interactionSource = pauseSrc,
+                modifier = Modifier.weight(1f).height(52.dp).pressScale(pauseSrc),
                 shape = RoundedCornerShape(26.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
             ) { Text(stringResource(R.string.conn_pause)) }
@@ -163,9 +191,20 @@ private fun CertificateCard(p: CertPrompt, onTrust: () -> Unit) {
     }
 }
 
-/** Big status badge: a glowing ring in the status colour that pulses while work is in progress. */
+/**
+ * Big status badge. The colour cross-fades, the icon morphs between states, the badge pops with a
+ * spring whenever the phase changes, and a ring pulses while work is in progress.
+ */
 @Composable
-private fun StatusHero(color: Color, icon: ImageVector, pulsing: Boolean, title: String, detail: String) {
+private fun StatusHero(
+    modifier: Modifier,
+    phaseKey: Int,
+    color: Color,
+    icon: ImageVector,
+    pulsing: Boolean,
+    title: String,
+    detail: String,
+) {
     val transition = rememberInfiniteTransition(label = "pulse")
     val pulse by transition.animateFloat(
         initialValue = 0.55f,
@@ -173,8 +212,22 @@ private fun StatusHero(color: Color, icon: ImageVector, pulsing: Boolean, title:
         animationSpec = infiniteRepeatable(tween(1100), RepeatMode.Reverse),
         label = "pulseAlpha",
     )
+    val ring by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1600)),
+        label = "ring",
+    )
     val glow = if (pulsing) pulse else 1f
-    GlassSurface(Modifier.fillMaxWidth(), strong = true) {
+    val c by animateColorAsState(color, tween(450), label = "heroColor")
+
+    val pop = remember { Animatable(1f) }
+    LaunchedEffect(phaseKey) {
+        pop.snapTo(0.82f)
+        pop.animateTo(1f, spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessMedium))
+    }
+
+    GlassSurface(modifier.fillMaxWidth().animateContentSize(softSpring()), strong = true) {
         Column(
             Modifier.fillMaxWidth().padding(vertical = 24.dp, horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -183,22 +236,44 @@ private fun StatusHero(color: Color, icon: ImageVector, pulsing: Boolean, title:
             Box(
                 Modifier
                     .size(96.dp)
+                    .graphicsLayer {
+                        scaleX = pop.value
+                        scaleY = pop.value
+                    }
                     .drawBehind {
-                        val c = Offset(size.width / 2, size.height / 2)
+                        val ctr = Offset(size.width / 2, size.height / 2)
                         val r = size.minDimension * 0.95f
                         drawCircle(
-                            Brush.radialGradient(listOf(color.copy(alpha = 0.40f * glow), Color.Transparent), c, r),
-                            r, c,
+                            Brush.radialGradient(listOf(c.copy(alpha = 0.40f * glow), Color.Transparent), ctr, r),
+                            r, ctr,
                         )
+                        if (pulsing) {
+                            val rr = size.minDimension * (0.36f + 0.22f * ring)
+                            drawCircle(c.copy(alpha = 0.5f * (1f - ring)), rr, ctr, style = androidx.compose.ui.graphics.drawscope.Stroke(2.dp.toPx()))
+                        }
                     }
                     .padding(14.dp)
-                    .background(color.copy(alpha = 0.18f), CircleShape)
-                    .border(2.dp, color.copy(alpha = 0.55f + 0.45f * glow), CircleShape),
+                    .background(c.copy(alpha = 0.18f), CircleShape)
+                    .border(2.dp, c.copy(alpha = 0.55f + 0.45f * glow), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(34.dp))
+                AnimatedContent(
+                    targetState = icon,
+                    transitionSpec = {
+                        (scaleIn(bouncySpring(), initialScale = 0.4f) + fadeIn(tween(180))) togetherWith
+                            (scaleOut(tween(120), targetScale = 0.4f) + fadeOut(tween(100)))
+                    },
+                    label = "heroIcon",
+                ) { ic -> Icon(ic, contentDescription = null, tint = c, modifier = Modifier.size(34.dp)) }
             }
-            Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+            AnimatedContent(
+                targetState = title,
+                transitionSpec = {
+                    (slideInVertically(tween(260)) { it / 3 } + fadeIn(tween(220, delayMillis = 60))) togetherWith
+                        (slideOutVertically(tween(160)) { -it / 3 } + fadeOut(tween(110)))
+                },
+                label = "heroTitle",
+            ) { tx -> Text(tx, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center) }
             if (detail.isNotEmpty()) {
                 Text(
                     detail,

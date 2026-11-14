@@ -55,7 +55,7 @@ fun NetworksScreen(app: UniLinkApp) {
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(data.groups, key = { it.id }) { g ->
-                    Panel {
+                    Panel(Modifier.animateItem()) {
                         Text(g.name, style = MaterialTheme.typography.titleMedium)
                         InfoRow(stringResource(R.string.net_wifi_names), g.ssids.joinToString().ifEmpty { "—" })
                         InfoRow(stringResource(R.string.net_accounts), g.accounts.size.toString())

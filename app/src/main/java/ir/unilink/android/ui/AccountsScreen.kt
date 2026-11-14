@@ -127,7 +127,7 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
         ) {
             items(group.accounts, key = { it.id }) { acc ->
                 val index = group.accounts.indexOfFirst { it.id == acc.id }
-                Panel {
+                Panel(Modifier.animateItem()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(acc.name, style = MaterialTheme.typography.titleMedium)

@@ -1,5 +1,6 @@
 package ir.unilink.android.ui
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -90,7 +91,7 @@ fun GlassSurface(
 
 @Composable
 fun Panel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    GlassSurface(modifier.fillMaxWidth()) {
+    GlassSurface(modifier.fillMaxWidth().animateContentSize(softSpring())) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp), content = content)
     }
 }

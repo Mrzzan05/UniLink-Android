@@ -43,7 +43,11 @@ class KeepAliveService : Service() {
         scope.launch {
             app.engine.status.combine(app.store.data) { st, d -> Triple(st, d.settings.holdWakeLock, d.settings.holdWifiLock) }
                 .collect { (st, cpu, wifi) ->
-                    applyLocks(cpu, wifi)
+                    // Hold the locks only while there is campus Wi-Fi work to do. Without it (no campus
+                    // Wi-Fi, paused, waiting for the user) nothing needs the CPU or the radio awake.
+                    val working = st.phase == Phase.Connecting || st.phase == Phase.Connected ||
+                        st.phase == Phase.WaitingRetry
+                    applyLocks(cpu && working, wifi && working)
                     getSystemService(NotificationManager::class.java)
                         .notify(NOTIF_ID, buildNotification(st))
                     UniLinkWidget.refresh(this@KeepAliveService)
