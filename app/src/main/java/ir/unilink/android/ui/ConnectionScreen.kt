@@ -144,6 +144,8 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
                     tick()
                     KeepAliveService.start(ctx)
                     app.engine.connectNow()
+                    // Wi-Fi is off: bring up the system switch so one tap is enough to join campus Wi-Fi.
+                    if (!wifiRadioOn(ctx)) openWifiPanel(ctx)
                 },
                 interactionSource = connectSrc,
                 modifier = Modifier.weight(1f).height(52.dp).pressScale(connectSrc),

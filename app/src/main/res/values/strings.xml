@@ -184,4 +184,7 @@
     <string name="upd_available">Version %1$s is available.</string>
     <string name="upd_failed">Could not check: %1$s</string>
     <string name="upd_privacy">Only runs when you tap the button. It asks GitHub for the latest release and sends no accounts or personal data. Nothing is installed automatically.</string>
+    <string name="conn_wifi_off_title">Wi-Fi is off</string>
+    <string name="conn_wifi_off_body">UniLink can only sign in over campus Wi-Fi. Android does not let apps switch Wi-Fi on by themselves, so tap the button and flip the Wi-Fi switch.</string>
+    <string name="conn_wifi_on">Turn on Wi-Fi</string>
 </resources>

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.1
+- New: if the phone's Wi-Fi is off when you tap **Connect**, UniLink opens the system Wi-Fi switch so one tap turns it on and the app can join campus Wi-Fi. The Connection tab also shows a "Wi-Fi is off" card with a Turn on Wi-Fi button. (Android 10 and newer do not allow apps to switch Wi-Fi on by themselves, so this is the closest permitted behaviour.)
+
 ## 1.9.0
 - New: **Check for update** in Settings > About. It asks GitHub for the latest release of this project and tells you whether a newer version exists, with a button that opens the release page. It only runs when you tap it, sends no accounts or personal data, and never installs anything by itself.
 - New: the author's name and a **GitHub project** button in the same panel.

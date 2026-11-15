@@ -184,4 +184,7 @@
     <string name="upd_available">نسخهٔ %1$s در دسترس است.</string>
     <string name="upd_failed">بررسی انجام نشد: %1$s</string>
     <string name="upd_privacy">فقط وقتی دکمه را بزنی اجرا می‌شود. از GitHub آخرین نسخه را می‌پرسد و هیچ حساب یا اطلاعات شخصی نمی‌فرستد. چیزی خودکار نصب نمی‌شود.</string>
+    <string name="conn_wifi_off_title">وای‌فای خاموش است</string>
+    <string name="conn_wifi_off_body">UniLink فقط از طریق وای‌فای دانشگاه وارد می‌شود. اندروید اجازه نمی‌دهد برنامه‌ها وای‌فای را خودشان روشن کنند؛ دکمه را بزن و کلید وای‌فای را روشن کن.</string>
+    <string name="conn_wifi_on">روشن کردن وای‌فای</string>
 </resources>
