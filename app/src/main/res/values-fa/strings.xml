@@ -195,4 +195,7 @@
     <string name="usage_renews">تمدید: %1$s</string>
     <string name="usage_updated">به‌روز شده: %1$s</string>
     <string name="usage_error">خواندن حجم ناموفق بود: %1$s</string>
+    <string name="usage_just_now">همین الان</string>
+    <string name="usage_title">حجم باقی‌مانده · %1$s</string>
+    <string name="usage_refresh_short">به‌روزرسانی</string>
 </resources>

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.10.6
+- New: the **Connection** tab shows the data bar of the account in use, with a Refresh button. When you open the tab and the numbers are older than 30 minutes, it refreshes once by itself (only while the app is on screen).
+- The bar now shows what is **left**: it shrinks as data is used, turns amber below 30% and red below 10%.
+- "Updated 0 minutes ago" now reads "just now".
+
 ## 1.10.5
 - Fix: the portal's usage page marks its rows with single-quoted ids, which the reader did not recognise. It now accepts both, so the remaining data, allowance and renewal date are read.
 

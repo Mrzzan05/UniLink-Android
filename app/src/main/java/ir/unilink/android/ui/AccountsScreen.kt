@@ -354,7 +354,7 @@ private fun formatMb(mb: Double): String =
     else String.format(java.util.Locale.US, "%.0f MB", mb)
 
 @Composable
-private fun UsageBlock(usage: UsageInfo?, loading: Boolean, error: String?, onRefresh: () -> Unit) {
+internal fun UsageBlock(usage: UsageInfo?, loading: Boolean, error: String?, onRefresh: () -> Unit) {
     Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (usage == null) {
             Text(
@@ -363,15 +363,16 @@ private fun UsageBlock(usage: UsageInfo?, loading: Boolean, error: String?, onRe
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
-            val f = usage.fraction
-            val shown by animateFloatAsState(f ?: 0f, label = "usageBar")
+            // The bar shows what is LEFT: it shrinks as data is used and turns amber, then red.
+            val leftShare = usage.fraction?.let { 1f - it }
+            val shown by animateFloatAsState(leftShare ?: 0f, label = "usageBar")
             val barColor = when {
-                f == null -> StatusGreen
-                f < 0.70f -> StatusGreen
-                f < 0.90f -> StatusAmber
+                leftShare == null -> StatusGreen
+                leftShare > 0.30f -> StatusGreen
+                leftShare > 0.10f -> StatusAmber
                 else -> StatusRed
             }
-            if (f != null) {
+            if (leftShare != null) {
                 LinearProgressIndicator(
                     progress = { shown },
                     modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
@@ -383,7 +384,9 @@ private fun UsageBlock(usage: UsageInfo?, loading: Boolean, error: String?, onRe
                 stringResource(R.string.usage_left, formatMb(usage.remainingMb), formatMb(usage.allottedMb))
             else stringResource(R.string.usage_unlimited, formatMb(usage.usedMb))
             Text(line, style = MaterialTheme.typography.bodyMedium)
-            val updated = DateUtils.getRelativeTimeSpanString(
+            val age = System.currentTimeMillis() - usage.fetchedAt
+            val updated = if (age < 60_000L) stringResource(R.string.usage_just_now)
+            else DateUtils.getRelativeTimeSpanString(
                 usage.fetchedAt, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS
             ).toString()
             val tail = buildString {

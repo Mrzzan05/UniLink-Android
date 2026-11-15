@@ -58,6 +58,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -79,6 +80,12 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
     val st by app.engine.status.collectAsState()
     val stats by app.engine.stats.collectAsState()
     val ctx = LocalContext.current
+    val appData by app.store.data.collectAsState()
+    val usageBusy by app.engine.usageBusy.collectAsState()
+    val usageErrors by app.engine.usageErrors.collectAsState()
+    val inUse = appData.groups.firstNotNullOfOrNull { g ->
+        g.accounts.firstOrNull { it.id == st.accountId }?.let { a -> g to a }
+    }
     val color = when (st.phase) {
         Phase.Connected -> StatusGreen
         Phase.WaitingRetry, Phase.NeedCertificate, Phase.AccountNeeded -> StatusAmber
@@ -126,6 +133,35 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
                     stringResource(R.string.conn_late),
                     stringResource(R.string.conn_late_value, stats.late, stats.maxLateSec),
                 )
+            }
+        }
+
+        inUse?.let { (g, acc) ->
+            if (g.usageUrl.isNotBlank()) {
+                // Refresh once when the tab opens with old numbers (only while the app is on screen).
+                LaunchedEffect(acc.id) {
+                    val age = System.currentTimeMillis() - (acc.usage?.fetchedAt ?: 0L)
+                    if (age > 30 * 60_000L) app.engine.refreshUsage(g.id, acc.id)
+                }
+                Panel(Modifier.staggerIn(2)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(R.string.usage_title, acc.name),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(
+                            onClick = { app.engine.refreshUsage(g.id, acc.id) },
+                            enabled = acc.id !in usageBusy,
+                        ) { Text(stringResource(R.string.usage_refresh_short)) }
+                    }
+                    UsageBlock(
+                        usage = acc.usage,
+                        loading = acc.id in usageBusy,
+                        error = usageErrors[acc.id],
+                        onRefresh = {},
+                    )
+                }
             }
         }
 

@@ -195,4 +195,7 @@
     <string name="usage_renews">Renews %1$s</string>
     <string name="usage_updated">Updated %1$s</string>
     <string name="usage_error">Could not read usage: %1$s</string>
+    <string name="usage_just_now">just now</string>
+    <string name="usage_title">Data left · %1$s</string>
+    <string name="usage_refresh_short">Refresh</string>
 </resources>
