@@ -142,6 +142,13 @@ class UsageClient(private val network: Network?, private val pin: String?) {
             first
         }
 
+    private fun snippet(text: String?): String =
+        (text ?: "-").replace(Regex("[A-Za-z0-9+/=_-]{20,}"), "…").replace(Regex("\\s+"), " ").trim().take(150)
+
+    private companion object {
+        const val UA = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36"
+    }
+
     private fun run(base: String, username: String, password: String, bound: Boolean): UsageResult {
         val root = base.trim().trimEnd('/').toHttpUrlOrNull() ?: return UsageResult.Failure("Invalid portal URL")
         if (!root.isHttps) return UsageResult.Failure("The usage portal must use https")
@@ -152,7 +159,7 @@ class UsageClient(private val network: Network?, private val pin: String?) {
         return try {
             val tokens = CsrfFinder()
             fun getText(path: String, headers: Map<String, String> = emptyMap(), limit: Long = 2_000_000): String? {
-                val rb = Request.Builder().url(url(path)).get()
+                val rb = Request.Builder().url(url(path)).get().header("User-Agent", UA).header("Accept", "*/*")
                 headers.forEach { (k, v) -> rb.header(k, v) }
                 return c.newCall(rb.build()).execute().use { r ->
                     tokens.fromHeaders(r.headers)
@@ -172,6 +179,8 @@ class UsageClient(private val network: Network?, private val pin: String?) {
                 .add("__RequestType", "ajax").add("t", System.currentTimeMillis().toString()).build()
             val loginBody = c.newCall(
                 Request.Builder().url(url("/userportal/Controller")).post(form)
+                    .header("User-Agent", UA).header("Accept", "text/plain, */*; q=0.01")
+                    .header("Origin", root.toString().trimEnd('/'))
                     .header("X-Requested-With", "XMLHttpRequest")
                     .header("Referer", url("/").toString()).build()
             ).execute().use { r ->
@@ -209,7 +218,7 @@ class UsageClient(private val network: Network?, private val pin: String?) {
                 info != null -> UsageResult.Ok(info)
                 frag != null && UsageParser.looksLikeLogin(frag) -> UsageResult.Failure("Portal asked to sign in again")
                 else -> UsageResult.Failure(
-                    "Usage table not found (home ${home.length} B, page ${frag?.length ?: -1} B, token ${tokens.describe()}, hints ${CsrfFinder.hints(home)})"
+                    "Usage table not found (home ${home.length} B, page ${frag?.length ?: -1} B, token ${tokens.describe()}, reply \"${snippet(frag)}\")"
                 )
             }
         } catch (e: IOException) {

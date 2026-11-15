@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.10.3
+- The usage requests now identify as a normal mobile browser (some portals answer only those) and an unreadable usage page reports a short, masked excerpt of the reply so the cause can be found.
+
 ## 1.10.2
 - Fix: the usage page needs the portal's anti-forgery token, which the home page hands to its script as `Cyberoam.c$rFt0k3n`. UniLink now reads it from there, so the usage page loads.
 
