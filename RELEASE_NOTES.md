@@ -1,8 +1,9 @@
-## UniLink Android v1.9.1
+## UniLink Android v1.9.2
 
-- When Wi-Fi is off, **Connect** opens the system Wi-Fi switch (one tap), and the Connection tab shows a "Wi-Fi is off" card with a Turn on Wi-Fi button. Android does not let apps turn Wi-Fi on silently.
+- Log lines for sign-in and retries now show timings (how long the attempt took, how long after Wi-Fi was detected), to help trace slow connections. Use Activity > Share log to send one.
+- Faster retry when the first attempt is made just as Wi-Fi comes up (6 s connection timeout instead of 10 s).
 
 ### Update
-Install `UniLink-v1.9.1.apk` over the previous version; accounts and settings are kept. The signing certificate SHA-256 is at the bottom of these notes (see SECURITY.md).
+Install `UniLink-v1.9.2.apk` over the previous version; accounts and settings are kept. The signing certificate SHA-256 is at the bottom of these notes (see SECURITY.md).
 
 > Unofficial project, not affiliated with any university or with Sophos. Use only accounts you are allowed to use.

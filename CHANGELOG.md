@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.2
+- Diagnostics: the "Signed in" and "Retry in" log lines now include how long the attempt took and how long after Wi-Fi was detected, so slow connections can be traced from a shared log.
+- The connection timeout to the portal is 6 seconds instead of 10, so a first attempt made just as Wi-Fi comes up fails and retries sooner.
+
 ## 1.9.1
 - New: if the phone's Wi-Fi is off when you tap **Connect**, UniLink opens the system Wi-Fi switch so one tap turns it on and the app can join campus Wi-Fi. The Connection tab also shows a "Wi-Fi is off" card with a Turn on Wi-Fi button. (Android 10 and newer do not allow apps to switch Wi-Fi on by themselves, so this is the closest permitted behaviour.)
 

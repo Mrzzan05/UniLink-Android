@@ -192,6 +192,8 @@ class Engine(private val ctx: Context, private val store: Store) {
         }
     }
 
+    @Volatile private var wifiDetectedAt = 0L
+
     private suspend fun sleep(ms: Long) {
         withTimeoutOrNull(ms.coerceAtLeast(500L)) { wake.receive() }
     }
@@ -230,6 +232,7 @@ class Engine(private val ctx: Context, private val store: Store) {
         val matchNote = "SSID=${ssid ?: "hidden"} group=${group?.name ?: "none"}"
         if (matchNote != lastMatchNote) {
             lastMatchNote = matchNote
+            wifiDetectedAt = android.os.SystemClock.elapsedRealtime()
             log("Wi-Fi detected: $matchNote")
         }
         if (group == null) {
@@ -288,7 +291,14 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     private suspend fun doLogin(g: NetworkGroup, net: Network) {
         setStatus(Phase.Connecting, str(R.string.st_signing_in), g.name, g.name)
-        when (val o = opLock.withLock { attemptLogin(g, net) }) {
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        val outcome = opLock.withLock { attemptLogin(g, net) }
+        // Timing helps find out why a sign-in feels slow (Wi-Fi settling, portal, retries).
+        val took = (android.os.SystemClock.elapsedRealtime() - t0) / 1000.0
+        val sinceWifi = (android.os.SystemClock.elapsedRealtime() - wifiDetectedAt) / 1000.0
+        val timing = String.format(java.util.Locale.US, "%.1f s", took) +
+            if (wifiDetectedAt > 0L && sinceWifi < 600) String.format(java.util.Locale.US, ", %.1f s after Wi-Fi detected", sinceWifi) else ""
+        when (val o = outcome) {
             is Outcome.LoggedIn -> {
                 val now = System.currentTimeMillis()
                 session = Session(g.id, o.account.id, o.account.name, o.account.username, o.url, net.networkHandle)
@@ -298,7 +308,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                 nextKeepalive = now + intervalMs(g)
                 log(
                     if (o.adopted) "Portal already has a live session for \"${o.account.name}\" — keeping it alive"
-                    else "Signed in with \"${o.account.name}\" on ${g.name}"
+                    else "Signed in with \"${o.account.name}\" on ${g.name} ($timing)"
                 )
                 setConnected(g)
             }
@@ -334,7 +344,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                 // A VPN that blocks Wi-Fi access can change at any moment; keep checking often.
                 if (o.reason == PortalClient.VPN_BLOCKED) seconds = minOf(seconds, 60)
                 retryAt = now + seconds * 1000L
-                log("Retry in ${seconds}s: ${o.reason}")
+                log("Retry in ${seconds}s: ${o.reason} (attempt took $timing)")
                 _status.value = EngineStatus(
                     phase = Phase.WaitingRetry,
                     title = str(R.string.st_wait_retry),
