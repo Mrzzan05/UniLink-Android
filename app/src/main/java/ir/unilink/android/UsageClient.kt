@@ -249,13 +249,15 @@ internal class CsrfFinder {
 
     fun fromBody(html: String) {
         val patterns = listOf(
+            // Sophos: Cyberoam.c$rFt0k3n = '...';  ([$] avoids Kotlin string templates)
+            Regex("""c[$]rFt0k3n\s*=\s*["']([A-Za-z0-9\-_+/=.]{8,})["']"""),
             Regex("""<meta[^>]+name=["']?_?csrf[-_a-z]*["']?[^>]*content=["']([^"']{8,})["']""", RegexOption.IGNORE_CASE),
             Regex("""X-CSRF-Token["']?\s*[,:=]\s*["']([A-Za-z0-9\-_+/=.]{8,})["']""", RegexOption.IGNORE_CASE),
             Regex("""csrf[A-Za-z_\-]*["']?\s*[:=]\s*["']([A-Za-z0-9\-_+/=.]{8,})["']""", RegexOption.IGNORE_CASE),
             Regex("""name=["']?csrf[A-Za-z_\-]*["']?[^>]*value=["']([^"']{8,})["']""", RegexOption.IGNORE_CASE),
         )
         for ((i, re) in patterns.withIndex()) {
-            re.find(html)?.let { take(it.groupValues[1], "page#$i"); return }
+            re.find(html)?.let { take(it.groupValues[1], "page#" + i); return }
         }
     }
 

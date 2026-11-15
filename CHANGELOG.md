@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.10.2
+- Fix: the usage page needs the portal's anti-forgery token, which the home page hands to its script as `Cyberoam.c$rFt0k3n`. UniLink now reads it from there, so the usage page loads.
+
 ## 1.10.1
 - Fix: the data-usage reading found no table because the portal's home page is only a shell. UniLink now also loads the usage page (AccountStatus.jsp) the way the portal's own script does, sending the portal's anti-forgery token when the page provides one.
 - A DNS miss right after Wi-Fi comes up is retried once. If the table still cannot be found, the error now lists non-sensitive diagnostics (page sizes, whether a token was found) so it can be traced.
