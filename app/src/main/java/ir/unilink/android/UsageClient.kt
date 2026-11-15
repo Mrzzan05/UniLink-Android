@@ -1,0 +1,205 @@
+package ir.unilink.android
+
+import android.net.Network
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.ConnectionPool
+import okhttp3.ConnectionSpec
+import okhttp3.Dns
+import okhttp3.FormBody
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import java.io.IOException
+import java.net.Inet4Address
+import java.net.InetAddress
+import java.net.Proxy
+import java.net.UnknownHostException
+import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+
+sealed class UsageResult {
+    data class Ok(val info: UsageInfo) : UsageResult()
+    data class BadCredentials(val message: String) : UsageResult()
+    data class CertReview(val fingerprint: String, val subject: String, val changed: Boolean) : UsageResult()
+    data class Failure(val reason: String) : UsageResult()
+}
+
+/** Pure HTML parsing of the Sophos user-portal home page. No Android dependencies. */
+object UsageParser {
+    private val ROW_IDS = listOf(
+        "Language.CycleDataTrasfer", "Language.CycleDownloadedData",
+        "Language.DataTrasfer", "Language.DownloadedData",
+    )
+
+    private fun clean(html: String): String =
+        html.replace(Regex("<[^>]*>"), " ").replace("&nbsp;", " ").replace(Regex("\\s+"), " ").trim()
+
+    /** "3159.02 MB" -> 3159.02 (MB). Returns null for "N.A." or anything without a number. */
+    fun megabytes(text: String): Double? {
+        val m = Regex("([0-9][0-9,]*(?:\\.[0-9]+)?)\\s*(KB|MB|GB|TB)?", RegexOption.IGNORE_CASE).find(text) ?: return null
+        val n = m.groupValues[1].replace(",", "").toDoubleOrNull() ?: return null
+        return when (m.groupValues[2].uppercase()) {
+            "KB" -> n / 1024.0
+            "GB" -> n * 1024.0
+            "TB" -> n * 1024.0 * 1024.0
+            else -> n
+        }
+    }
+
+    private fun cells(html: String, labelId: String): List<String>? {
+        val at = html.indexOf("id=\"$labelId\"")
+        if (at < 0) return null
+        val start = html.lastIndexOf("<tr", at)
+        val end = html.indexOf("</tr>", at)
+        if (start < 0 || end < 0) return null
+        return Regex("<td[^>]*>(.*?)</td>", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
+            .findAll(html.substring(start, end)).map { clean(it.groupValues[1]) }.toList()
+    }
+
+    /** Looks for the cycle (monthly) rows first, then the lifetime rows. */
+    fun parse(html: String, now: Long): UsageInfo? {
+        var best: UsageInfo? = null
+        for (id in ROW_IDS) {
+            val c = cells(html, id) ?: continue
+            if (c.size < 6) continue
+            val allotted = megabytes(c[1])
+            val used = megabytes(c[4]) ?: continue
+            val remaining = megabytes(c[5])
+            val info = UsageInfo(allotted, used, remaining, renewal(html), now)
+            if (allotted != null) return info // a real limit wins
+            if (best == null) best = info      // otherwise keep the first unlimited reading
+        }
+        return best
+    }
+
+    fun renewal(html: String): String {
+        val c = cells(html, "Language.DataTransferRenewal") ?: return ""
+        return c.getOrNull(1)?.takeIf { Regex("^[0-9/.-]{6,12}$").matches(it) } ?: ""
+    }
+
+    fun looksLikeLogin(html: String) = html.contains("name=\"password\"") && html.contains("name=\"username\"")
+}
+
+/**
+ * Reads the data allowance from the Sophos user portal with the account's own user name and password.
+ * Same safety rules as [PortalClient]: pinned certificate (checked before anything is sent), proxy
+ * ignored, redirects refused, and credentials only ever go to the configured host.
+ */
+class UsageClient(private val network: Network?, private val pin: String?) {
+    private val jar = object : CookieJar {
+        private val store = mutableListOf<Cookie>()
+        override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+            cookies.forEach { c -> store.removeAll { it.name == c.name } ; store.add(c) }
+        }
+        override fun loadForRequest(url: HttpUrl): List<Cookie> = store.toList()
+    }
+
+    private fun client(cap: Capture, bound: Boolean): OkHttpClient {
+        val trust = PinTrust(pin, cap)
+        val ssl = SSLContext.getInstance("TLS").apply { init(null, arrayOf<TrustManager>(trust), SecureRandom()) }
+        val b = OkHttpClient.Builder()
+        if (bound && network != null) {
+            b.socketFactory(network.socketFactory).dns(object : Dns {
+                override fun lookup(hostname: String): List<InetAddress> {
+                    val v4 = network.getAllByName(hostname).filterIsInstance<Inet4Address>()
+                    if (v4.isEmpty()) throw UnknownHostException(hostname)
+                    return v4
+                }
+            })
+        }
+        return b.proxy(Proxy.NO_PROXY)
+            .cookieJar(jar)
+            .followRedirects(false).followSslRedirects(false)
+            .retryOnConnectionFailure(false)
+            .connectionPool(ConnectionPool(0, 1, TimeUnit.NANOSECONDS))
+            .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS))
+            .sslSocketFactory(ssl.socketFactory, trust)
+            .hostnameVerifier { _, _ -> true } // identity is the pinned fingerprint
+            .connectTimeout(8, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS).callTimeout(40, TimeUnit.SECONDS)
+            .build()
+    }
+
+    suspend fun fetch(base: String, username: String, password: String): UsageResult =
+        withContext(Dispatchers.IO) {
+            val first = run(base, username, password, bound = true)
+            if (first is UsageResult.Failure && first.reason.contains("EPERM") && network != null) {
+                return@withContext when (val second = run(base, username, password, bound = false)) {
+                    is UsageResult.Failure, is UsageResult.CertReview -> UsageResult.Failure(PortalClient.VPN_BLOCKED)
+                    else -> second
+                }
+            }
+            first
+        }
+
+    private fun run(base: String, username: String, password: String, bound: Boolean): UsageResult {
+        val root = base.trim().trimEnd('/').toHttpUrlOrNull() ?: return UsageResult.Failure("Invalid portal URL")
+        if (!root.isHttps) return UsageResult.Failure("The usage portal must use https")
+        val cap = Capture()
+        val c = client(cap, bound)
+        fun url(path: String) = root.newBuilder().encodedPath(path).build()
+        var loggedIn = false
+        return try {
+            // 1) Session cookie (no credentials involved).
+            c.newCall(Request.Builder().url(url("/userportal/webpages/myaccount/login.jsp")).get().build())
+                .execute().use { it.body?.close() }
+
+            // 2) Log in.
+            val json = JSONObject().put("username", username).put("password", password).put("languageid", "1")
+            val form = FormBody.Builder()
+                .add("mode", "451").add("json", json.toString())
+                .add("__RequestType", "ajax").add("t", System.currentTimeMillis().toString()).build()
+            val loginBody = c.newCall(
+                Request.Builder().url(url("/userportal/Controller")).post(form)
+                    .header("X-Requested-With", "XMLHttpRequest")
+                    .header("Referer", url("/").toString()).build()
+            ).execute().use { r ->
+                if (r.isRedirect) return UsageResult.Failure("Redirect rejected by policy")
+                if (!r.isSuccessful) return UsageResult.Failure("HTTP ${r.code}")
+                r.peekBody(65536).string()
+            }
+            val reply = runCatching { JSONObject(loginBody) }.getOrNull()
+                ?: return UsageResult.Failure("Unrecognized login reply")
+            val status = reply.optInt("status", -1)
+            if (status != 200) {
+                val msg = reply.optString("message", "").take(160)
+                return UsageResult.BadCredentials(msg.ifBlank { "status $status" })
+            }
+            loggedIn = true
+
+            // 3) Home page holds the usage tables.
+            val html = c.newCall(
+                Request.Builder().url(url("/userportal/webpages/myaccount/index.jsp")).get().build()
+            ).execute().use { r ->
+                if (r.isRedirect) return UsageResult.Failure("Portal did not keep the session")
+                if (!r.isSuccessful) return UsageResult.Failure("HTTP ${r.code}")
+                r.body?.source()?.let { s -> s.request(2_000_000); s.buffer.clone().readUtf8() } ?: ""
+            }
+            val info = UsageParser.parse(html, System.currentTimeMillis())
+            when {
+                info != null -> UsageResult.Ok(info)
+                UsageParser.looksLikeLogin(html) -> UsageResult.Failure("Portal asked to sign in again")
+                else -> UsageResult.Failure("Usage table not found (portal layout changed?)")
+            }
+        } catch (e: IOException) {
+            val fp = cap.fingerprint
+            if (fp != null && !fp.equals(pin, ignoreCase = true))
+                UsageResult.CertReview(fp, cap.subject.orEmpty(), changed = pin != null)
+            else UsageResult.Failure(e.message ?: e.javaClass.simpleName)
+        } catch (e: Exception) {
+            UsageResult.Failure(e.message ?: e.javaClass.simpleName)
+        } finally {
+            if (loggedIn) runCatching {
+                c.newCall(Request.Builder().url(url("/userportal/webpages/logout.jsp").newBuilder()
+                    .addQueryParameter("webclient", "myaccount").build())
+                    .get().build()).execute().use { it.body?.close() }
+            }
+        }
+    }
+}

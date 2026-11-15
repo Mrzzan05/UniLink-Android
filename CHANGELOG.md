@@ -1,5 +1,48 @@
 # Changelog
 
+## 1.10.0
+- New: **data usage per account**. The Accounts tab shows a bar with the remaining data, the monthly allowance and the renewal date for each account, read from the university user portal (`gate1.urmia.ac.ir:8450`) with the same user name and password. Tap **Refresh data usage** (or the account's own refresh) when you want fresh numbers; nothing is fetched in the background.
+- Safety: the user-portal certificate is pinned like the Wi-Fi portal (you approve its fingerprint once, and nothing is sent before that), the proxy is ignored, redirects are refused, and the account signs out of the user portal after each reading. Only the user name and password of that account are sent, and only to the configured portal address.
+- Groups saved by older versions get the Urmia usage address automatically; other groups keep the feature off.
+
+## 1.9.2
+- Diagnostics: the "Signed in" and "Retry in" log lines now include how long the attempt took and how long after Wi-Fi was detected, so slow connections can be traced from a shared log.
+- The connection timeout to the portal is 6 seconds instead of 10, so a first attempt made just as Wi-Fi comes up fails and retries sooner.
+
+## 1.9.1
+- New: if the phone's Wi-Fi is off when you tap **Connect**, UniLink opens the system Wi-Fi switch so one tap turns it on and the app can join campus Wi-Fi. The Connection tab also shows a "Wi-Fi is off" card with a Turn on Wi-Fi button. (Android 10 and newer do not allow apps to switch Wi-Fi on by themselves, so this is the closest permitted behaviour.)
+
+## 1.9.0
+- New: **Check for update** in Settings > About. It asks GitHub for the latest release of this project and tells you whether a newer version exists, with a button that opens the release page. It only runs when you tap it, sends no accounts or personal data, and never installs anything by itself.
+- New: the author's name and a **GitHub project** button in the same panel.
+
+## 1.8.1
+- Fix: on the Activity tab the log card ran underneath the tab bar and showed a double outline. It now ends above the bar.
+- Fix: scrolled text showed through the translucent tab bar on all three themes. The bar now has an opaque underlay.
+- Content that scrolls under the status bar now fades out softly instead of being cut with a hard edge.
+
+## 1.8.0
+- **Midnight is now a true AMOLED theme**: pure black background, a deep blue glow at the top only, darker cards and a darker tab bar with a faint edge, and brighter borders on choice buttons.
+- Accounts: round initials avatars, and the Default tag moves next to the account name so every card has the same height.
+- Settings: Language and Appearance are full-width choice rows with centred labels.
+- Networks: Delete is shown in red.
+- Activity: the time is dim and monospaced, "Signed in" is green, drops and failures are amber, and entries are separated by a thin line.
+- Light theme: a visible card border and a softer glow behind the status icon.
+- The last item in a scrolling tab is no longer cut off by the floating tab bar. The Connection tab has a Wi-Fi icon, and Pause looks dimmer when you are not signed in.
+
+## 1.7.1
+- New: **swipe left or right** to change tabs. The tab bar follows your finger and the page under it shrinks and fades slightly.
+- New: **Appearance** setting with System, Light, Dark and **Midnight**. Midnight is a deeper, near-black version of the dark look with a stronger blue and violet glow. The status bar icons follow the chosen look.
+- Fix: the add (+) button sat a little higher on Accounts than on Networks; both now share the same position.
+
+## 1.7.0
+- **Smoother interface.** The floating navigation bar now slides: the selected tab expands to show its label with a spring, others shrink to an icon. Switching tabs slides and fades in the direction you are moving. The status badge morphs between icons, changes colour smoothly, pops when the state changes and shows a ring while connecting. Cards enter one after another, panels animate when their content changes, buttons shrink slightly under your finger and give a light haptic tick, list items animate when added, removed or moved, and Back returns to the first tab before closing the app (with the Android 13+ back preview).
+- No new libraries; the animation code is original and uses only Jetpack Compose.
+- Includes the 1.6.1 battery fix.
+
+## 1.6.1
+- **Battery fix.** The CPU wake lock and the Wi-Fi lock were held for as long as the service ran, even when the phone was not on campus Wi-Fi (for example at home, or while waiting for the network). On one test phone that meant a wake lock for about 12 h 42 m in a day and roughly 10% of the battery. The locks are now held only while the app is connecting, signed in, or retrying on campus Wi-Fi, and released otherwise.
+
 ## 1.6.0
 - New: a **Network events** counter on the Connection tab. It counts the Wi-Fi and VPN callbacks the app receives, to help find out whether network chatter keeps the CPU awake (battery tuning).
 - New: the activity log notes which XML fields the portal's login and keepalive replies contain (names only, never values or credentials), once per kind. This shows whether the portal reports data usage, which a usage bar would need.

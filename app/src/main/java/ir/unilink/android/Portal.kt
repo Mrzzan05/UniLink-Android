@@ -81,13 +81,13 @@ object PortalParser {
     }
 }
 
-private class Capture {
+internal class Capture {
     @Volatile var fingerprint: String? = null
     @Volatile var subject: String? = null
 }
 
 /** Accepts only the certificate whose SHA-256 fingerprint was approved by the user. */
-private class PinTrust(private val pin: String?, private val cap: Capture) : X509TrustManager {
+internal class PinTrust(private val pin: String?, private val cap: Capture) : X509TrustManager {
     override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
         throw CertificateException("Client certificates are not supported")
     }
@@ -145,7 +145,7 @@ class PortalClient(private val network: Network, private val pin: String?) {
             .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS))
             .sslSocketFactory(ssl.socketFactory, trust)
             .hostnameVerifier { _, _ -> true } // identity is established by the pinned fingerprint
-            .connectTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(6, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .callTimeout(25, TimeUnit.SECONDS)
             .build()

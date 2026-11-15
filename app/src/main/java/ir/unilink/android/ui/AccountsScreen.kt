@@ -15,6 +15,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import android.text.format.DateUtils
+import ir.unilink.android.UsageInfo
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -27,6 +36,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,7 +69,7 @@ fun AccountsScreen(app: UniLinkApp) {
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     val group = data.groups.firstOrNull { it.id == selectedId } ?: data.groups.firstOrNull()
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 16.dp)) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp).padding(top = 16.dp)) {
         ScreenTitle(stringResource(R.string.tab_accounts))
         if (group == null) {
             Text(
@@ -86,6 +100,9 @@ fun AccountsScreen(app: UniLinkApp) {
 @Composable
 private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
     val status by app.engine.status.collectAsState()
+    val busy by app.engine.usageBusy.collectAsState()
+    val usageErrors by app.engine.usageErrors.collectAsState()
+    val usageCert by app.engine.usageCert.collectAsState()
     var editing by remember { mutableStateOf<Account?>(null) }
     var adding by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf<Account?>(null) }
@@ -112,6 +129,24 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
         app.engine.kick()
     }
 
+    if (group.usageUrl.isNotBlank() && group.accounts.isNotEmpty()) {
+        Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.End) {
+            TextButton(
+                onClick = { app.engine.refreshUsage(group.id) },
+                enabled = busy.isEmpty(),
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.usage_refresh))
+            }
+        }
+    }
+    usageCert?.takeIf { it.groupId == group.id }?.let { p ->
+        Box(Modifier.padding(top = 4.dp, bottom = 4.dp)) {
+            CertificateCard(p) { app.engine.approveUsageCertificate(p) }
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         if (group.accounts.isEmpty()) {
             Text(
@@ -122,15 +157,29 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
         }
         LazyColumn(
             Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp),
+            contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp + LocalBarPad.current),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items(group.accounts, key = { it.id }) { acc ->
                 val index = group.accounts.indexOfFirst { it.id == acc.id }
-                Panel {
+                Panel(Modifier.animateItem()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(44.dp).background(AccentBlue.copy(alpha = 0.20f), CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                acc.name.trim().take(2).uppercase().ifEmpty { "?" },
+                                color = AccentBlue,
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(acc.name, style = MaterialTheme.typography.titleMedium)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(acc.name, style = MaterialTheme.typography.titleMedium)
+                                if (index == 0) Tag(stringResource(R.string.tag_default), AccentBlue)
+                            }
                             Text(
                                 acc.username,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -145,22 +194,27 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
                             onAction = { act(acc, it) },
                         )
                     }
-                    Row(
+                    if (status.accountId == acc.id || !acc.enabled || acc.passwordRejected || acc.isExhaustedNow(group, now)) Row(
                         Modifier.horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        if (index == 0) Tag(stringResource(R.string.tag_default), AccentBlue)
                         if (status.accountId == acc.id) Tag(stringResource(R.string.tag_in_use), StatusGreen)
                         if (!acc.enabled) Tag(stringResource(R.string.tag_disabled), StatusGrey)
                         if (acc.passwordRejected) Tag(stringResource(R.string.tag_password_rejected), StatusRed)
                         if (acc.isExhaustedNow(group, now)) Tag(stringResource(R.string.tag_quota_used), StatusAmber)
                     }
+                    if (group.usageUrl.isNotBlank()) UsageBlock(
+                        usage = acc.usage,
+                        loading = acc.id in busy,
+                        error = usageErrors[acc.id],
+                        onRefresh = { app.engine.refreshUsage(group.id, acc.id) },
+                    )
                 }
             }
         }
         FloatingActionButton(
             onClick = { adding = true },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp + LocalBarPad.current),
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
         ) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.acc_add_cd)) }
@@ -292,4 +346,61 @@ private fun AccountDialog(initial: Account?, onDismiss: () -> Unit, onSave: (Acc
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } },
     )
+}
+
+
+private fun formatMb(mb: Double): String =
+    if (mb >= 1024.0) String.format(java.util.Locale.US, "%.1f GB", mb / 1024.0)
+    else String.format(java.util.Locale.US, "%.0f MB", mb)
+
+@Composable
+private fun UsageBlock(usage: UsageInfo?, loading: Boolean, error: String?, onRefresh: () -> Unit) {
+    Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (usage == null) {
+            Text(
+                stringResource(if (loading) R.string.usage_loading else R.string.usage_never),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            val f = usage.fraction
+            val shown by animateFloatAsState(f ?: 0f, label = "usageBar")
+            val barColor = when {
+                f == null -> StatusGreen
+                f < 0.70f -> StatusGreen
+                f < 0.90f -> StatusAmber
+                else -> StatusRed
+            }
+            if (f != null) {
+                LinearProgressIndicator(
+                    progress = { shown },
+                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                    color = barColor,
+                    trackColor = barColor.copy(alpha = 0.18f),
+                )
+            }
+            val line = if (usage.allottedMb != null && usage.remainingMb != null)
+                stringResource(R.string.usage_left, formatMb(usage.remainingMb), formatMb(usage.allottedMb))
+            else stringResource(R.string.usage_unlimited, formatMb(usage.usedMb))
+            Text(line, style = MaterialTheme.typography.bodyMedium)
+            val updated = DateUtils.getRelativeTimeSpanString(
+                usage.fetchedAt, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS
+            ).toString()
+            val tail = buildString {
+                if (usage.renewal.isNotBlank()) append(stringResource(R.string.usage_renews, usage.renewal)).append("  ·  ")
+                append(stringResource(R.string.usage_updated, updated))
+            }
+            Text(tail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (loading && usage != null) {
+            Text(stringResource(R.string.usage_loading), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (error != null && !loading) {
+            Text(
+                stringResource(R.string.usage_error, error),
+                style = MaterialTheme.typography.bodySmall,
+                color = StatusAmber,
+            )
+        }
+    }
 }

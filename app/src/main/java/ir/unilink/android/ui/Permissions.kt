@@ -44,3 +44,18 @@ fun requestBatteryUnrestricted(ctx: Context) {
         )
     }
 }
+
+/** True when the phone's Wi-Fi radio is switched on. */
+fun wifiRadioOn(ctx: Context): Boolean = runCatching {
+    (ctx.applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager).isWifiEnabled
+}.getOrDefault(true)
+
+/**
+ * Android 10+ no longer lets apps switch Wi-Fi on silently, so open the system panel
+ * that has the Wi-Fi switch (one tap for the user); older versions get the Wi-Fi settings page.
+ */
+fun openWifiPanel(ctx: Context) {
+    val action = if (android.os.Build.VERSION.SDK_INT >= 29) Settings.Panel.ACTION_INTERNET_CONNECTIVITY
+    else Settings.ACTION_WIFI_SETTINGS
+    runCatching { ctx.startActivity(Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+}

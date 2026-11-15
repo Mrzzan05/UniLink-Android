@@ -1,6 +1,14 @@
 package ir.unilink.android.ui
 
+import android.app.Activity
+import android.content.Context
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -25,6 +33,8 @@ data class GlassColors(
     val red: Color,
     val grey: Color,
     val blue: Color,
+    val blobAStrength: Float,
+    val blobBStrength: Float,
 )
 
 private val DarkGlass = GlassColors(
@@ -42,6 +52,8 @@ private val DarkGlass = GlassColors(
     red = Color(0xFFFF6B6B),
     grey = Color(0xFF8A97AD),
     blue = Color(0xFF6FA8FF),
+    blobAStrength = 0.5f,
+    blobBStrength = 0.4f,
 )
 
 private val LightGlass = GlassColors(
@@ -53,12 +65,34 @@ private val LightGlass = GlassColors(
     glassFill = Color(0x80FFFFFF),
     glassFillStrong = Color(0xB3FFFFFF),
     glassEdgeHi = Color(0xE6FFFFFF),
-    glassEdgeLo = Color(0x33FFFFFF),
+    glassEdgeLo = Color(0x4D3A5FA8),
     green = Color(0xFF0E9F55),
     amber = Color(0xFFC77700),
     red = Color(0xFFD93A3A),
     grey = Color(0xFF5E6B82),
     blue = Color(0xFF2A62D9),
+    blobAStrength = 0.6f,
+    blobBStrength = 0.48f,
+)
+
+/** Deeper, near-black version of the dark look with stronger blue and violet glow. */
+private val MidnightGlass = GlassColors(
+    dark = true,
+    backdropTop = Color(0xFF000000),
+    backdropBottom = Color(0xFF000000),
+    blobA = Color(0xFF2458FF),
+    blobB = Color(0xFF8B3CFF),
+    glassFill = Color(0xA60A0D18),
+    glassFillStrong = Color(0xE60B0E1A),
+    glassEdgeHi = Color(0x66A9BEFF),
+    glassEdgeLo = Color(0x1AFFFFFF),
+    green = Color(0xFF5BF5AE),
+    amber = Color(0xFFFFC857),
+    red = Color(0xFFFF5C7A),
+    grey = Color(0xFF7C88A6),
+    blue = Color(0xFF7DB2FF),
+    blobAStrength = 0.8f,
+    blobBStrength = 0.16f,
 )
 
 val LocalGlass = staticCompositionLocalOf { DarkGlass }
@@ -109,10 +143,71 @@ private val LightScheme = lightColorScheme(
     error = Color(0xFFD93A3A),
 )
 
+private val MidnightScheme = DarkScheme.copy(
+    primary = Color(0xFF7DB2FF),
+    onPrimary = Color(0xFF001B4D),
+    primaryContainer = Color(0xFF16336E),
+    background = Color(0xFF000000),
+    surface = Color(0xFF000000),
+    surfaceVariant = Color(0xFF111628),
+    outlineVariant = Color(0x55B8C8FF),
+    outline = Color(0xFF5D6C94),
+    surfaceContainer = Color(0xFF0D1224),
+    surfaceContainerHigh = Color(0xFF121933),
+    surfaceContainerHighest = Color(0xFF18213F),
+)
+
+/** Look chosen in Settings. Kept in SharedPreferences and observable, so switching is instant. */
+object ThemePrefs {
+    const val SYSTEM = "system"
+    const val LIGHT = "light"
+    const val DARK = "dark"
+    const val MIDNIGHT = "midnight"
+    private const val FILE = "ui_prefs"
+    private const val KEY = "theme"
+
+    var mode by mutableStateOf(SYSTEM)
+        private set
+
+    fun load(ctx: Context) {
+        mode = runCatching { ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY, SYSTEM) }
+            .getOrNull() ?: SYSTEM
+    }
+
+    fun set(ctx: Context, value: String) {
+        mode = value
+        runCatching { ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putString(KEY, value).apply() }
+    }
+}
+
 @Composable
 fun UniLinkTheme(content: @Composable () -> Unit) {
-    val dark = isSystemInDarkTheme()
-    CompositionLocalProvider(LocalGlass provides if (dark) DarkGlass else LightGlass) {
-        MaterialTheme(colorScheme = if (dark) DarkScheme else LightScheme, content = content)
+    val system = isSystemInDarkTheme()
+    val mode = ThemePrefs.mode
+    val dark = when (mode) {
+        ThemePrefs.LIGHT -> false
+        ThemePrefs.DARK, ThemePrefs.MIDNIGHT -> true
+        else -> system
+    }
+    val glass = when {
+        mode == ThemePrefs.MIDNIGHT -> MidnightGlass
+        dark -> DarkGlass
+        else -> LightGlass
+    }
+    val scheme = when {
+        mode == ThemePrefs.MIDNIGHT -> MidnightScheme
+        dark -> DarkScheme
+        else -> LightScheme
+    }
+    // Make the status/navigation bar icons match the chosen look, not only the phone's setting.
+    val view = LocalView.current
+    SideEffect {
+        val window = (view.context as? Activity)?.window ?: return@SideEffect
+        val c = WindowCompat.getInsetsController(window, view)
+        c.isAppearanceLightStatusBars = !dark
+        c.isAppearanceLightNavigationBars = !dark
+    }
+    CompositionLocalProvider(LocalGlass provides glass) {
+        MaterialTheme(colorScheme = scheme, content = content)
     }
 }

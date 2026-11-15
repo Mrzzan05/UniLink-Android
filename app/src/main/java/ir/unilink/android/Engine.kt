@@ -78,6 +78,17 @@ class Engine(private val ctx: Context, private val store: Store) {
     private val _log = MutableStateFlow<List<String>>(emptyList())
     val logLines: StateFlow<List<String>> = _log.asStateFlow()
 
+    // ---- data usage (user portal) ----
+    private val usageLock = Mutex()
+    private val _usageBusy = MutableStateFlow<Set<String>>(emptySet())
+    /** Account ids whose usage is being fetched right now. */
+    val usageBusy: StateFlow<Set<String>> = _usageBusy.asStateFlow()
+    private val _usageErrors = MutableStateFlow<Map<String, String>>(emptyMap())
+    /** Account id -> last fetch error (cleared on success). */
+    val usageErrors: StateFlow<Map<String, String>> = _usageErrors.asStateFlow()
+    private val _usageCert = MutableStateFlow<CertPrompt?>(null)
+    val usageCert: StateFlow<CertPrompt?> = _usageCert.asStateFlow()
+
     private var job: Job? = null
     private var tracker: WifiTracker? = null
 
@@ -177,6 +188,57 @@ class Engine(private val ctx: Context, private val store: Store) {
         wake.trySend(Unit)
     }
 
+    /** Fetches the data allowance of one account, or of every usable account when [accountId] is null. */
+    fun refreshUsage(groupId: String, accountId: String? = null) {
+        scope.launch {
+            val g = store.data.value.groups.firstOrNull { it.id == groupId } ?: return@launch
+            if (g.usageUrl.isBlank()) return@launch
+            val targets = g.accounts.filter { (accountId == null || it.id == accountId) && it.enabled && !it.passwordRejected }
+            if (targets.isEmpty()) return@launch
+            usageLock.withLock {
+                _usageBusy.update { it + targets.map { a -> a.id } }
+                for (acc in targets) {
+                    val fresh = store.data.value.groups.firstOrNull { it.id == groupId } ?: break
+                    val client = UsageClient(tracker?.network, fresh.pins[fresh.usageUrl])
+                    when (val r = client.fetch(fresh.usageUrl, acc.username, acc.password)) {
+                        is UsageResult.Ok -> {
+                            store.updateAccount(groupId, acc.id) { it.copy(usage = r.info) }
+                            _usageErrors.update { it - acc.id }
+                            log("Usage for \"${acc.name}\": ${r.info.usedMb.toInt()} MB used" +
+                                (r.info.remainingMb?.let { ", ${it.toInt()} MB left" } ?: ", unlimited"))
+                        }
+                        is UsageResult.BadCredentials -> {
+                            _usageErrors.update { it + (acc.id to r.message) }
+                            log("Usage for \"${acc.name}\": user portal rejected the login (${r.message})")
+                        }
+                        is UsageResult.CertReview -> {
+                            _usageCert.value = CertPrompt(fresh.id, fresh.name, fresh.usageUrl, r.fingerprint, r.subject, r.changed)
+                            _usageErrors.update { it + (acc.id to "certificate") }
+                            _usageBusy.update { it - targets.map { a -> a.id }.toSet() }
+                            return@withLock
+                        }
+                        is UsageResult.Failure -> {
+                            _usageErrors.update { it + (acc.id to r.reason) }
+                            log("Usage for \"${acc.name}\" failed: ${r.reason}")
+                        }
+                    }
+                    _usageBusy.update { it - acc.id }
+                }
+            }
+        }
+    }
+
+    fun approveUsageCertificate(p: CertPrompt) {
+        store.updateGroup(p.groupId) { it.copy(pins = it.pins + (p.url to p.fingerprint)) }
+        _usageCert.value = null
+        log("Certificate approved for ${p.url} (${p.fingerprint.take(11)}…)")
+        refreshUsage(p.groupId)
+    }
+
+    fun dismissUsageCertificate() {
+        _usageCert.value = null
+    }
+
     // ---------- main loop ----------
 
     private fun onNetworkEvent() {
@@ -191,6 +253,8 @@ class Engine(private val ctx: Context, private val store: Store) {
             wake.trySend(Unit)
         }
     }
+
+    @Volatile private var wifiDetectedAt = 0L
 
     private suspend fun sleep(ms: Long) {
         withTimeoutOrNull(ms.coerceAtLeast(500L)) { wake.receive() }
@@ -230,6 +294,7 @@ class Engine(private val ctx: Context, private val store: Store) {
         val matchNote = "SSID=${ssid ?: "hidden"} group=${group?.name ?: "none"}"
         if (matchNote != lastMatchNote) {
             lastMatchNote = matchNote
+            wifiDetectedAt = android.os.SystemClock.elapsedRealtime()
             log("Wi-Fi detected: $matchNote")
         }
         if (group == null) {
@@ -288,7 +353,14 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     private suspend fun doLogin(g: NetworkGroup, net: Network) {
         setStatus(Phase.Connecting, str(R.string.st_signing_in), g.name, g.name)
-        when (val o = opLock.withLock { attemptLogin(g, net) }) {
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        val outcome = opLock.withLock { attemptLogin(g, net) }
+        // Timing helps find out why a sign-in feels slow (Wi-Fi settling, portal, retries).
+        val took = (android.os.SystemClock.elapsedRealtime() - t0) / 1000.0
+        val sinceWifi = (android.os.SystemClock.elapsedRealtime() - wifiDetectedAt) / 1000.0
+        val timing = String.format(java.util.Locale.US, "%.1f s", took) +
+            if (wifiDetectedAt > 0L && sinceWifi < 600) String.format(java.util.Locale.US, ", %.1f s after Wi-Fi detected", sinceWifi) else ""
+        when (val o = outcome) {
             is Outcome.LoggedIn -> {
                 val now = System.currentTimeMillis()
                 session = Session(g.id, o.account.id, o.account.name, o.account.username, o.url, net.networkHandle)
@@ -298,7 +370,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                 nextKeepalive = now + intervalMs(g)
                 log(
                     if (o.adopted) "Portal already has a live session for \"${o.account.name}\" — keeping it alive"
-                    else "Signed in with \"${o.account.name}\" on ${g.name}"
+                    else "Signed in with \"${o.account.name}\" on ${g.name} ($timing)"
                 )
                 setConnected(g)
             }
@@ -334,7 +406,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                 // A VPN that blocks Wi-Fi access can change at any moment; keep checking often.
                 if (o.reason == PortalClient.VPN_BLOCKED) seconds = minOf(seconds, 60)
                 retryAt = now + seconds * 1000L
-                log("Retry in ${seconds}s: ${o.reason}")
+                log("Retry in ${seconds}s: ${o.reason} (attempt took $timing)")
                 _status.value = EngineStatus(
                     phase = Phase.WaitingRetry,
                     title = str(R.string.st_wait_retry),
