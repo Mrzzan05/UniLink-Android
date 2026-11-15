@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.10.1
+- Fix: the data-usage reading found no table because the portal's home page is only a shell. UniLink now also loads the usage page (AccountStatus.jsp) the way the portal's own script does, sending the portal's anti-forgery token when the page provides one.
+- A DNS miss right after Wi-Fi comes up is retried once. If the table still cannot be found, the error now lists non-sensitive diagnostics (page sizes, whether a token was found) so it can be traced.
+
 ## 1.10.0
 - New: **data usage per account**. The Accounts tab shows a bar with the remaining data, the monthly allowance and the renewal date for each account, read from the university user portal (`gate1.urmia.ac.ir:8450`) with the same user name and password. Tap **Refresh data usage** (or the account's own refresh) when you want fresh numbers; nothing is fetched in the background.
 - Safety: the user-portal certificate is pinned like the Wi-Fi portal (you approve its fingerprint once, and nothing is sent before that), the proxy is ignored, redirects are refused, and the account signs out of the user portal after each reading. Only the user name and password of that account are sent, and only to the configured portal address.

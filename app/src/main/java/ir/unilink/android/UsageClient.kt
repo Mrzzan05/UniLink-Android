@@ -128,7 +128,11 @@ class UsageClient(private val network: Network?, private val pin: String?) {
 
     suspend fun fetch(base: String, username: String, password: String): UsageResult =
         withContext(Dispatchers.IO) {
-            val first = run(base, username, password, bound = true)
+            var first = run(base, username, password, bound = true)
+            if (first is UsageResult.Failure && first.reason.contains("resolve host")) {
+                kotlinx.coroutines.delay(1_500) // DNS right after Wi-Fi/portal sign-in can lag a moment
+                first = run(base, username, password, bound = true)
+            }
             if (first is UsageResult.Failure && first.reason.contains("EPERM") && network != null) {
                 return@withContext when (val second = run(base, username, password, bound = false)) {
                     is UsageResult.Failure, is UsageResult.CertReview -> UsageResult.Failure(PortalClient.VPN_BLOCKED)
@@ -146,9 +150,20 @@ class UsageClient(private val network: Network?, private val pin: String?) {
         fun url(path: String) = root.newBuilder().encodedPath(path).build()
         var loggedIn = false
         return try {
+            val tokens = CsrfFinder()
+            fun getText(path: String, headers: Map<String, String> = emptyMap(), limit: Long = 2_000_000): String? {
+                val rb = Request.Builder().url(url(path)).get()
+                headers.forEach { (k, v) -> rb.header(k, v) }
+                return c.newCall(rb.build()).execute().use { r ->
+                    tokens.fromHeaders(r.headers)
+                    if (r.isRedirect) return@use null
+                    r.body?.source()?.let { src -> src.request(limit); src.buffer.clone().readUtf8() }
+                        ?.also { tokens.fromBody(it) }
+                }
+            }
+
             // 1) Session cookie (no credentials involved).
-            c.newCall(Request.Builder().url(url("/userportal/webpages/myaccount/login.jsp")).get().build())
-                .execute().use { it.body?.close() }
+            getText("/userportal/webpages/myaccount/login.jsp")
 
             // 2) Log in.
             val json = JSONObject().put("username", username).put("password", password).put("languageid", "1")
@@ -160,6 +175,7 @@ class UsageClient(private val network: Network?, private val pin: String?) {
                     .header("X-Requested-With", "XMLHttpRequest")
                     .header("Referer", url("/").toString()).build()
             ).execute().use { r ->
+                tokens.fromHeaders(r.headers)
                 if (r.isRedirect) return UsageResult.Failure("Redirect rejected by policy")
                 if (!r.isSuccessful) return UsageResult.Failure("HTTP ${r.code}")
                 r.peekBody(65536).string()
@@ -172,20 +188,29 @@ class UsageClient(private val network: Network?, private val pin: String?) {
                 return UsageResult.BadCredentials(msg.ifBlank { "status $status" })
             }
             loggedIn = true
+            tokens.fromJson(reply)
 
-            // 3) Home page holds the usage tables.
-            val html = c.newCall(
-                Request.Builder().url(url("/userportal/webpages/myaccount/index.jsp")).get().build()
-            ).execute().use { r ->
-                if (r.isRedirect) return UsageResult.Failure("Portal did not keep the session")
-                if (!r.isSuccessful) return UsageResult.Failure("HTTP ${r.code}")
-                r.body?.source()?.let { s -> s.request(2_000_000); s.buffer.clone().readUtf8() } ?: ""
+            // 3) The home page is only a shell; it carries the anti-forgery token.
+            val home = getText("/userportal/webpages/myaccount/index.jsp")
+                ?: return UsageResult.Failure("Portal did not keep the session")
+            UsageParser.parse(home, System.currentTimeMillis())?.let { return UsageResult.Ok(it) }
+
+            // 4) The usage tables are loaded by the page's script from AccountStatus.jsp.
+            val ajax = buildMap<String, String> {
+                put("X-Requested-With", "XMLHttpRequest")
+                put("Referer", url("/userportal/webpages/myaccount/index.jsp").toString())
+                tokens.value?.let { put("X-CSRF-Token", it) }
             }
-            val info = UsageParser.parse(html, System.currentTimeMillis())
+            val frag = getText(
+                "/userportal/webpages/myaccount/AccountStatus.jsp?popup=0&t=${System.currentTimeMillis()}", ajax
+            )
+            val info = frag?.let { UsageParser.parse(it, System.currentTimeMillis()) }
             when {
                 info != null -> UsageResult.Ok(info)
-                UsageParser.looksLikeLogin(html) -> UsageResult.Failure("Portal asked to sign in again")
-                else -> UsageResult.Failure("Usage table not found (portal layout changed?)")
+                frag != null && UsageParser.looksLikeLogin(frag) -> UsageResult.Failure("Portal asked to sign in again")
+                else -> UsageResult.Failure(
+                    "Usage table not found (home ${home.length} B, page ${frag?.length ?: -1} B, token ${tokens.describe()}, hints ${CsrfFinder.hints(home)})"
+                )
             }
         } catch (e: IOException) {
             val fp = cap.fingerprint
@@ -201,5 +226,45 @@ class UsageClient(private val network: Network?, private val pin: String?) {
                     .get().build()).execute().use { it.body?.close() }
             }
         }
+    }
+}
+
+/** Finds the anti-forgery token the portal page hands to its own scripts (value never logged). */
+internal class CsrfFinder {
+    var value: String? = null
+        private set
+    private var source = "none"
+
+    private fun take(v: String?, from: String) {
+        if (value == null && !v.isNullOrBlank()) { value = v; source = from }
+    }
+
+    fun fromHeaders(h: okhttp3.Headers) {
+        take(h["X-CSRF-Token"] ?: h["X-XSRF-Token"] ?: h["CSRF-Token"], "header")
+    }
+
+    fun fromJson(o: JSONObject) {
+        for (k in o.keys()) if (k.contains("csrf", true) || k.contains("xsrf", true)) take(o.optString(k), "login-json")
+    }
+
+    fun fromBody(html: String) {
+        val patterns = listOf(
+            Regex("""<meta[^>]+name=["']?_?csrf[-_a-z]*["']?[^>]*content=["']([^"']{8,})["']""", RegexOption.IGNORE_CASE),
+            Regex("""X-CSRF-Token["']?\s*[,:=]\s*["']([A-Za-z0-9\-_+/=.]{8,})["']""", RegexOption.IGNORE_CASE),
+            Regex("""csrf[A-Za-z_\-]*["']?\s*[:=]\s*["']([A-Za-z0-9\-_+/=.]{8,})["']""", RegexOption.IGNORE_CASE),
+            Regex("""name=["']?csrf[A-Za-z_\-]*["']?[^>]*value=["']([^"']{8,})["']""", RegexOption.IGNORE_CASE),
+        )
+        for ((i, re) in patterns.withIndex()) {
+            re.find(html)?.let { take(it.groupValues[1], "page#$i"); return }
+        }
+    }
+
+    fun describe() = if (value == null) "none" else "found($source)"
+
+    companion object {
+        /** Names (never values) in the page that look token-related, to help locate it. */
+        fun hints(html: String): String =
+            Regex("""[A-Za-z_\-]*(?:csrf|xsrf|token)[A-Za-z_\-]*""", RegexOption.IGNORE_CASE)
+                .findAll(html).map { it.value }.distinct().take(6).joinToString(",").ifEmpty { "-" }
     }
 }
