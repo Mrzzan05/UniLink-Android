@@ -154,7 +154,9 @@ class UsageClient(private val network: Network?, private val pin: String?) {
         if (!root.isHttps) return UsageResult.Failure("The usage portal must use https")
         val cap = Capture()
         val c = client(cap, bound)
-        fun url(path: String) = root.newBuilder().encodedPath(path).build()
+        // path may carry a query string ("?popup=0&t=..."), so build from text, not encodedPath
+        fun url(path: String): HttpUrl = (root.toString().trimEnd('/') + path).toHttpUrlOrNull()
+            ?: throw IOException("Invalid usage URL")
         var loggedIn = false
         return try {
             val tokens = CsrfFinder()

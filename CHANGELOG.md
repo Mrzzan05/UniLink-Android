@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.10.4
+- Fix: the usage page address was built wrongly (its query string was encoded into the path), so the portal answered 404. Now the address is exact, as the portal's own script requests it.
+
 ## 1.10.3
 - The usage requests now identify as a normal mobile browser (some portals answer only those) and an unreadable usage page reports a short, masked excerpt of the reply so the cause can be found.
 
