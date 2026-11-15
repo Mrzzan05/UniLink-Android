@@ -54,8 +54,8 @@ object UsageParser {
     }
 
     private fun cells(html: String, labelId: String): List<String>? {
-        val at = html.indexOf("id=\"$labelId\"")
-        if (at < 0) return null
+        // The raw server page uses single quotes (id='...'); the browser-saved copy uses double quotes.
+        val at = Regex("id=[\"']" + Regex.escape(labelId) + "[\"']").find(html)?.range?.first ?: return null
         val start = html.lastIndexOf("<tr", at)
         val end = html.indexOf("</tr>", at)
         if (start < 0 || end < 0) return null

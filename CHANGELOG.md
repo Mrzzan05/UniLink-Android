@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.10.5
+- Fix: the portal's usage page marks its rows with single-quoted ids, which the reader did not recognise. It now accepts both, so the remaining data, allowance and renewal date are read.
+
 ## 1.10.4
 - Fix: the usage page address was built wrongly (its query string was encoded into the path), so the portal answered 404. Now the address is exact, as the portal's own script requests it.
 
