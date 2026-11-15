@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.0
+- New: **Check for update** in Settings > About. It asks GitHub for the latest release of this project and tells you whether a newer version exists, with a button that opens the release page. It only runs when you tap it, sends no accounts or personal data, and never installs anything by itself.
+- New: the author's name and a **GitHub project** button in the same panel.
+
 ## 1.8.1
 - Fix: on the Activity tab the log card ran underneath the tab bar and showed a double outline. It now ends above the bar.
 - Fix: scrolled text showed through the translucent tab bar on all three themes. The bar now has an opaque underlay.

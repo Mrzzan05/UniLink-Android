@@ -175,4 +175,13 @@
     <string name="set_theme_light">روشن</string>
     <string name="set_theme_dark">تیره</string>
     <string name="set_theme_midnight">نیمه‌شب</string>
+    <string name="about_author">سازنده</string>
+    <string name="about_github">پروژه در GitHub</string>
+    <string name="upd_check">بررسی به‌روزرسانی</string>
+    <string name="upd_download">دانلود</string>
+    <string name="upd_checking">در حال بررسی GitHub…</string>
+    <string name="upd_up_to_date">آخرین نسخه را داری (%1$s).</string>
+    <string name="upd_available">نسخهٔ %1$s در دسترس است.</string>
+    <string name="upd_failed">بررسی انجام نشد: %1$s</string>
+    <string name="upd_privacy">فقط وقتی دکمه را بزنی اجرا می‌شود. از GitHub آخرین نسخه را می‌پرسد و هیچ حساب یا اطلاعات شخصی نمی‌فرستد. چیزی خودکار نصب نمی‌شود.</string>
 </resources>

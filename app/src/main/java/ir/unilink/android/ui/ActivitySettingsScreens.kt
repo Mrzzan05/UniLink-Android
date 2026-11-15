@@ -209,13 +209,7 @@ fun SettingsScreen(app: UniLinkApp) {
             ) { requestBatteryUnrestricted(ctx) }
         }
 
-        Panel {
-            Text(stringResource(R.string.set_about_title), style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(R.string.set_about_text, BuildConfig.VERSION_NAME),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        AboutPanel()
 
         Button(
             onClick = {

@@ -175,4 +175,13 @@
     <string name="set_theme_light">Light</string>
     <string name="set_theme_dark">Dark</string>
     <string name="set_theme_midnight">Midnight</string>
+    <string name="about_author">Author</string>
+    <string name="about_github">GitHub project</string>
+    <string name="upd_check">Check for update</string>
+    <string name="upd_download">Download</string>
+    <string name="upd_checking">Checking GitHub…</string>
+    <string name="upd_up_to_date">You have the latest version (%1$s).</string>
+    <string name="upd_available">Version %1$s is available.</string>
+    <string name="upd_failed">Could not check: %1$s</string>
+    <string name="upd_privacy">Only runs when you tap the button. It asks GitHub for the latest release and sends no accounts or personal data. Nothing is installed automatically.</string>
 </resources>
