@@ -198,4 +198,9 @@
     <string name="usage_just_now">همین الان</string>
     <string name="usage_title">حجم باقی‌مانده · %1$s</string>
     <string name="usage_refresh_short">به‌روزرسانی</string>
+    <string name="notif_update_channel">نسخه‌ی جدید</string>
+    <string name="notif_update_title">نسخه‌ی %1$s یونی‌لینک آماده است</string>
+    <string name="notif_update_text">برای باز شدن صفحه‌ی دانلود لمس کنید.</string>
+    <string name="set_update_title">اطلاع از نسخه‌ی جدید</string>
+    <string name="set_update_sub">روزی یک بار آخرین نسخه از گیت‌هاب پرسیده می‌شود و فقط اگر نسخه‌ی شما قدیمی‌تر باشد یک اعلان آرام نشان داده می‌شود. چیزی نصب نمی‌شود و اطلاعات حساب فرستاده نمی‌شود.</string>
 </resources>

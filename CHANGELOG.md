@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.11.0
+- New: **update notice**. Once a day, while the UniLink service is running, the app asks GitHub for the latest release. Only if that version is newer than the installed one, and only once per version, it shows one quiet notification that opens the release page. Nothing is installed, no account data is sent, and it can be switched off in Settings ("Tell me about new versions"). Failed checks (for example before sign-in gives internet) retry after 30 minutes.
+
 ## 1.10.6
 - New: the **Connection** tab shows the data bar of the account in use, with a Refresh button. When you open the tab and the numbers are older than 30 minutes, it refreshes once by itself (only while the app is on screen).
 - The bar now shows what is **left**: it shrinks as data is used, turns amber below 30% and red below 10%.

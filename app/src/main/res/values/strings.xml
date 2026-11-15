@@ -198,4 +198,9 @@
     <string name="usage_just_now">just now</string>
     <string name="usage_title">Data left · %1$s</string>
     <string name="usage_refresh_short">Refresh</string>
+    <string name="notif_update_channel">Update available</string>
+    <string name="notif_update_title">UniLink %1$s is available</string>
+    <string name="notif_update_text">Tap to open the download page.</string>
+    <string name="set_update_title">Tell me about new versions</string>
+    <string name="set_update_sub">Once a day UniLink asks GitHub for the latest version and shows one quiet notice only if yours is older. Nothing is installed and no account data is sent.</string>
 </resources>

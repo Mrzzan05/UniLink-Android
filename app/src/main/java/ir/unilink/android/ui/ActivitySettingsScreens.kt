@@ -188,6 +188,11 @@ fun SettingsScreen(app: UniLinkApp) {
                 stringResource(R.string.set_wifi_sub),
                 s.holdWifiLock,
             ) { v -> app.store.updateSettings { it.copy(holdWifiLock = v) } }
+            SwitchRow(
+                stringResource(R.string.set_update_title),
+                stringResource(R.string.set_update_sub),
+                s.updateNotify,
+            ) { v -> app.store.updateSettings { it.copy(updateNotify = v) } }
         }
 
         Panel {

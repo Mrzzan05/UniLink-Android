@@ -66,6 +66,10 @@ data class Settings(
     val startOnBoot: Boolean = true,
     val holdWakeLock: Boolean = true,
     val holdWifiLock: Boolean = true,
+    /** Quiet notification when a newer release exists (once per version, never when up to date). */
+    val updateNotify: Boolean = true,
+    val notifiedVersion: String = "",
+    val lastUpdateCheck: Long = 0L,
 )
 
 data class AppData(
@@ -192,6 +196,9 @@ fun AppData.toJson(): JSONObject {
             .put("startOnBoot", settings.startOnBoot)
             .put("holdWakeLock", settings.holdWakeLock)
             .put("holdWifiLock", settings.holdWifiLock)
+            .put("updateNotify", settings.updateNotify)
+            .put("notifiedVersion", settings.notifiedVersion)
+            .put("lastUpdateCheck", settings.lastUpdateCheck)
     )
 }
 
@@ -205,6 +212,9 @@ fun appDataFromJson(o: JSONObject): AppData {
             startOnBoot = s.optBoolean("startOnBoot", true),
             holdWakeLock = s.optBoolean("holdWakeLock", true),
             holdWifiLock = s.optBoolean("holdWifiLock", true),
+            updateNotify = s.optBoolean("updateNotify", true),
+            notifiedVersion = s.optString("notifiedVersion", ""),
+            lastUpdateCheck = s.optLong("lastUpdateCheck", 0L),
         ),
     )
 }

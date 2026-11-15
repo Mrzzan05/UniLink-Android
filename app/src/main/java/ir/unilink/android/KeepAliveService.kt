@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -40,6 +41,8 @@ class KeepAliveService : Service() {
         )
         app.engine.start()
 
+        scope.launch { updateWatcher() }
+
         scope.launch {
             app.engine.status.combine(app.store.data) { st, d -> Triple(st, d.settings.holdWakeLock, d.settings.holdWifiLock) }
                 .collect { (st, cpu, wifi) ->
@@ -53,6 +56,56 @@ class KeepAliveService : Service() {
                     UniLinkWidget.refresh(this@KeepAliveService)
                 }
         }
+    }
+
+    /**
+     * Quiet update notice: at most one GitHub request per day, and a notification only when a version
+     * newer than the installed one exists and has not been announced yet. Failed checks (for example
+     * before the portal sign-in gives internet) are retried in 30 minutes.
+     */
+    private suspend fun updateWatcher() {
+        delay(90_000)
+        while (true) {
+            val s = app.store.data.value.settings
+            val now = System.currentTimeMillis()
+            var wait = 6 * 3_600_000L
+            if (s.updateNotify && now - s.lastUpdateCheck >= 24 * 3_600_000L) {
+                when (val r = UpdateCheck.check(BuildConfig.VERSION_NAME)) {
+                    is UpdateCheck.Result.Failed -> wait = 30 * 60_000L
+                    is UpdateCheck.Result.UpToDate ->
+                        app.store.updateSettings { it.copy(lastUpdateCheck = System.currentTimeMillis()) }
+                    is UpdateCheck.Result.Available -> {
+                        app.store.updateSettings { it.copy(lastUpdateCheck = System.currentTimeMillis()) }
+                        if (r.latest != s.notifiedVersion) {
+                            notifyUpdate(r.latest, r.url)
+                            app.store.updateSettings { it.copy(notifiedVersion = r.latest) }
+                        }
+                    }
+                }
+            }
+            delay(wait)
+        }
+    }
+
+    private fun notifyUpdate(version: String, url: String) {
+        val ui = Lang.wrap(this)
+        val nm = getSystemService(NotificationManager::class.java)
+        nm.createNotificationChannel(
+            NotificationChannel(UPDATE_CHANNEL, ui.getString(R.string.notif_update_channel), NotificationManager.IMPORTANCE_LOW)
+        )
+        val open = PendingIntent.getActivity(
+            this, 2, Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val n = NotificationCompat.Builder(this, UPDATE_CHANNEL)
+            .setSmallIcon(R.drawable.ic_stat)
+            .setContentTitle(ui.getString(R.string.notif_update_title, version))
+            .setContentText(ui.getString(R.string.notif_update_text))
+            .setContentIntent(open)
+            .setAutoCancel(true)
+            .setSilent(true)
+            .build()
+        runCatching { nm.notify(UPDATE_NOTIF_ID, n) } // no-op if notifications are blocked
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -144,6 +197,8 @@ class KeepAliveService : Service() {
     companion object {
         private const val CHANNEL_ID = "unilink_status"
         private const val NOTIF_ID = 1
+        private const val UPDATE_CHANNEL = "unilink_update"
+        private const val UPDATE_NOTIF_ID = 2
         private const val ACTION_EXIT = "ir.unilink.android.EXIT"
 
         fun start(context: Context) {

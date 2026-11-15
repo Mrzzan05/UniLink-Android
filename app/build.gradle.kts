@@ -12,8 +12,8 @@ android {
         applicationId = "ir.unilink.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 24
-        versionName = "1.10.6"
+        versionCode = 25
+        versionName = "1.11.0"
 
         // Drop translations of libraries we don't ship a UI for (the app itself is en + fa).
         @Suppress("DEPRECATION")
