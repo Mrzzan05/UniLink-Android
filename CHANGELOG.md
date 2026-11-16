@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.0
+- New: **Most data first** (Settings, off by default). Signs in with the account that has the most data left, using the last "Refresh data usage" readings (readings older than 10 days are ignored). Accounts known to have under 200 MB left are always tried last.
+- New: **one quiet notification when no account can sign in** (all out of data, disabled or rejected). Shown once until a sign-in works again; switch off in Settings.
+- New: the home-screen widget and the Quick Settings tile show the data left of the account in use.
+- Faster sign-in right after joining the Wi-Fi (reported on a Galaxy A51: 48 s from joining to signed in): the "is an account already live?" check now gives up after 3 s instead of 6 s, and when the portal cannot be reached at all UniLink retries quickly (3, 5, 8, 12, 20, 30 s) for the first two minutes instead of signing in blindly and backing off 5/15/30 s.
+- After UniLink signs in, it tells Android the Wi-Fi works so the system re-checks it (signing in inside the app never showed Android the captive-portal page, so the Wi-Fi could stay marked "no internet", which can make phones prefer mobile data and break Wi-Fi tethering). The result is written to the log ("Android network check after sign-in: validated=...").
+- Internal: the portal/usage parsers, account ordering and version comparison are plain Kotlin with unit tests (including a real usage page with the user name removed). The build runs them before assembling any APK.
+
 ## 1.11.0
 - New: **update notice**. Once a day, while the UniLink service is running, the app asks GitHub for the latest release. Only if that version is newer than the installed one, and only once per version, it shows one quiet notification that opens the release page. Nothing is installed, no account data is sent, and it can be switched off in Settings ("Tell me about new versions"). Failed checks (for example before sign-in gives internet) retry after 30 minutes.
 

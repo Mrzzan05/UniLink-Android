@@ -38,7 +38,12 @@ class UniLinkWidget : AppWidgetProvider() {
                 else -> 0xFF8A97AD.toInt()
             }
             val subtitle = when {
-                st.phase == Phase.Connected -> st.accountName ?: st.groupName ?: ""
+                st.phase == Phase.Connected -> {
+                    val name = st.accountName ?: st.groupName ?: ""
+                    val left = app.store.data.value.groups.flatMap { it.accounts }
+                        .firstOrNull { it.id == st.accountId }?.usage?.remainingMb
+                    if (left != null) "$name · " + ui.getString(R.string.widget_left, formatMb(left)) else name
+                }
                 st.phase == Phase.Stopped || st.phase == Phase.Paused -> ui.getString(R.string.tile_tap_connect)
                 else -> st.detail
             }

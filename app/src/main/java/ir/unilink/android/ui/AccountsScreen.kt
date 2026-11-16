@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import android.text.format.DateUtils
 import ir.unilink.android.UsageInfo
+import ir.unilink.android.formatMb
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -348,10 +349,6 @@ private fun AccountDialog(initial: Account?, onDismiss: () -> Unit, onSave: (Acc
     )
 }
 
-
-private fun formatMb(mb: Double): String =
-    if (mb >= 1024.0) String.format(java.util.Locale.US, "%.1f GB", mb / 1024.0)
-    else String.format(java.util.Locale.US, "%.0f MB", mb)
 
 @Composable
 internal fun UsageBlock(usage: UsageInfo?, loading: Boolean, error: String?, onRefresh: () -> Unit) {

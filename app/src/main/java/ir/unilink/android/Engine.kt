@@ -89,6 +89,8 @@ class Engine(private val ctx: Context, private val store: Store) {
     private val _usageCert = MutableStateFlow<CertPrompt?>(null)
     val usageCert: StateFlow<CertPrompt?> = _usageCert.asStateFlow()
 
+    private var noAccountsNotified = false
+
     private var job: Job? = null
     private var tracker: WifiTracker? = null
 
@@ -204,6 +206,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                         is UsageResult.Ok -> {
                             store.updateAccount(groupId, acc.id) { it.copy(usage = r.info) }
                             _usageErrors.update { it - acc.id }
+                            UniLinkWidget.refresh(ctx)
                             log("Usage for \"${acc.name}\": ${r.info.usedMb.toInt()} MB used" +
                                 (r.info.remainingMb?.let { ", ${it.toInt()} MB left" } ?: ", unlimited"))
                         }
@@ -366,6 +369,10 @@ class Engine(private val ctx: Context, private val store: Store) {
                 session = Session(g.id, o.account.id, o.account.name, o.account.username, o.url, net.networkHandle)
                 failures = 0
                 retryAt = 0L
+                if (noAccountsNotified) {
+                    noAccountsNotified = false
+                    Notices.clearNoAccounts(ctx)
+                }
                 lastKeepalive = now
                 nextKeepalive = now + intervalMs(g)
                 log(
@@ -373,6 +380,7 @@ class Engine(private val ctx: Context, private val store: Store) {
                     else "Signed in with \"${o.account.name}\" on ${g.name} ($timing)"
                 )
                 setConnected(g)
+                hintNetworkWorks(net)
             }
             is Outcome.NeedCert -> {
                 retryAt = System.currentTimeMillis() + 60_000
@@ -390,6 +398,10 @@ class Engine(private val ctx: Context, private val store: Store) {
             }
             Outcome.NoAccounts -> {
                 val now = System.currentTimeMillis()
+                if (g.accounts.isNotEmpty() && !noAccountsNotified && store.data.value.settings.notifyProblems) {
+                    noAccountsNotified = true
+                    Notices.noAccounts(ctx, g.name)
+                }
                 _status.value = EngineStatus(
                     phase = Phase.AccountNeeded,
                     title = str(R.string.st_account_needed),
@@ -403,6 +415,13 @@ class Engine(private val ctx: Context, private val store: Store) {
                 failures++
                 val now = System.currentTimeMillis()
                 var seconds = maxOf(o.minSeconds, backoffSeconds(failures))
+                // Right after joining the Wi-Fi the portal often needs a few seconds before it answers:
+                // retry quickly for the first two minutes instead of backing off.
+                val sinceWifi = (android.os.SystemClock.elapsedRealtime() - wifiDetectedAt) / 1000
+                if (wifiDetectedAt > 0L && sinceWifi < 120 && o.reason != PortalClient.VPN_BLOCKED) {
+                    val early = intArrayOf(3, 5, 8, 12, 20, 30)
+                    seconds = maxOf(o.minSeconds, minOf(seconds, early[(failures - 1).coerceIn(0, early.lastIndex)]))
+                }
                 // A VPN that blocks Wi-Fi access can change at any moment; keep checking often.
                 if (o.reason == PortalClient.VPN_BLOCKED) seconds = minOf(seconds, 60)
                 retryAt = now + seconds * 1000L
@@ -420,7 +439,9 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     private suspend fun attemptLogin(g: NetworkGroup, net: Network): Outcome {
         val now = System.currentTimeMillis()
-        val candidates = g.accounts.filter { it.isUsable(g, now) }
+        val candidates = LoginOrder.order(
+            g.accounts.filter { it.isUsable(g, now) }, now, store.data.value.settings.preferMostData
+        )
         if (candidates.isEmpty()) return Outcome.NoAccounts
 
         // Before sending any password, ask the portal whether one of our accounts is already live
@@ -431,11 +452,19 @@ class Engine(private val ctx: Context, private val store: Store) {
         if (!fresh) {
             probe@ for (acc in candidates) {
                 for (url in g.portalUrls) {
-                    when (val r = PortalClient(net, g.pins[url]).keepalive(url, acc.username, g.quotaPhrases)) {
+                    when (val r = PortalClient(net, g.pins[url], connectSeconds = 3L).keepalive(url, acc.username, g.quotaPhrases)) {
                         is PortalResult.Success -> return Outcome.LoggedIn(acc, url, adopted = true)
                         is PortalResult.CertReview ->
                             return Outcome.NeedCert(CertPrompt(g.id, g.name, url, r.fingerprint, r.subject, r.changed))
-                        is PortalResult.Failure -> break@probe
+                        is PortalResult.Failure -> {
+                            // The portal could not even be reached (Wi-Fi just joined, roaming, congestion):
+                            // a login would only wait out the same timeout, so go straight to a quick retry.
+                            if (isNetworkNotReady(r.reason)) {
+                                log("Portal $url not reachable yet: ${r.reason}")
+                                return Outcome.Retry(r.reason, 2)
+                            }
+                            break@probe
+                        }
                         else -> Unit
                     }
                 }
@@ -572,6 +601,32 @@ class Engine(private val ctx: Context, private val store: Store) {
     private fun str(@StringRes id: Int, vararg args: Any): String = Lang.wrap(ctx).getString(id, *args)
 
     private fun intervalMs(g: NetworkGroup) = g.keepaliveSec.coerceIn(30, 180) * 1000L
+
+    private fun isNetworkNotReady(reason: String): Boolean {
+        val r = reason.lowercase()
+        return "failed to connect" in r || "timed out" in r || "timeout" in r ||
+            "unable to resolve" in r || "no route" in r || "unreachable" in r
+    }
+
+    /**
+     * The sign-in happened inside the app, so Android never saw the captive-portal page and may keep
+     * the Wi-Fi marked "no internet" (which makes phones prefer mobile data and can stop Wi-Fi
+     * tethering). Tell the system the network works so it re-checks, and log what it concludes.
+     */
+    private fun hintNetworkWorks(net: Network) {
+        runCatching {
+            val cm = ctx.getSystemService(android.net.ConnectivityManager::class.java)
+            fun validated() = cm.getNetworkCapabilities(net)
+                ?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            if (validated() == false) {
+                cm.reportNetworkConnectivity(net, true)
+                scope.launch {
+                    delay(8_000)
+                    log("Android network check after sign-in: validated=${validated()}")
+                }
+            }
+        }
+    }
 
     private fun backoffSeconds(n: Int): Int {
         val table = intArrayOf(5, 15, 30, 60, 120, 300, 600, 900)

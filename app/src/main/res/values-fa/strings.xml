@@ -203,4 +203,12 @@
     <string name="notif_update_text">برای باز شدن صفحه‌ی دانلود لمس کنید.</string>
     <string name="set_update_title">اطلاع از نسخه‌ی جدید</string>
     <string name="set_update_sub">روزی یک بار آخرین نسخه از گیت‌هاب پرسیده می‌شود و فقط اگر نسخه‌ی شما قدیمی‌تر باشد یک اعلان آرام نشان داده می‌شود. چیزی نصب نمی‌شود و اطلاعات حساب فرستاده نمی‌شود.</string>
+    <string name="notif_problem_channel">مشکلات اتصال</string>
+    <string name="notif_noacc_title">هیچ حسابی نمی‌تواند وارد شود</string>
+    <string name="notif_noacc_text">همه‌ی حساب‌های «%1$s» حجم ندارند، غیرفعال‌اند یا رمزشان اشتباه است. برای بررسی لمس کنید.</string>
+    <string name="widget_left">%1$s باقی‌مانده</string>
+    <string name="set_prefer_title">اول بیشترین حجم</string>
+    <string name="set_prefer_sub">ورود با حسابی که حجم بیشتری دارد (نیاز به «به‌روزرسانی حجم» اخیر). حساب‌های زیر ۲۰۰ مگابایت آخر امتحان می‌شوند. خاموش: ترتیب فهرست.</string>
+    <string name="set_problems_title">اطلاع وقتی هیچ حسابی کار نمی‌کند</string>
+    <string name="set_problems_sub">یک اعلان آرام وقتی همه‌ی حساب‌ها حجم ندارند، غیرفعال‌اند یا رد شده‌اند. تا زمانی که ورود دوباره موفق شود فقط یک بار نشان داده می‌شود.</string>
 </resources>

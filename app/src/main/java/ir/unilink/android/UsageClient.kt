@@ -31,62 +31,6 @@ sealed class UsageResult {
     data class Failure(val reason: String) : UsageResult()
 }
 
-/** Pure HTML parsing of the Sophos user-portal home page. No Android dependencies. */
-object UsageParser {
-    private val ROW_IDS = listOf(
-        "Language.CycleDataTrasfer", "Language.CycleDownloadedData",
-        "Language.DataTrasfer", "Language.DownloadedData",
-    )
-
-    private fun clean(html: String): String =
-        html.replace(Regex("<[^>]*>"), " ").replace("&nbsp;", " ").replace(Regex("\\s+"), " ").trim()
-
-    /** "3159.02 MB" -> 3159.02 (MB). Returns null for "N.A." or anything without a number. */
-    fun megabytes(text: String): Double? {
-        val m = Regex("([0-9][0-9,]*(?:\\.[0-9]+)?)\\s*(KB|MB|GB|TB)?", RegexOption.IGNORE_CASE).find(text) ?: return null
-        val n = m.groupValues[1].replace(",", "").toDoubleOrNull() ?: return null
-        return when (m.groupValues[2].uppercase()) {
-            "KB" -> n / 1024.0
-            "GB" -> n * 1024.0
-            "TB" -> n * 1024.0 * 1024.0
-            else -> n
-        }
-    }
-
-    private fun cells(html: String, labelId: String): List<String>? {
-        // The raw server page uses single quotes (id='...'); the browser-saved copy uses double quotes.
-        val at = Regex("id=[\"']" + Regex.escape(labelId) + "[\"']").find(html)?.range?.first ?: return null
-        val start = html.lastIndexOf("<tr", at)
-        val end = html.indexOf("</tr>", at)
-        if (start < 0 || end < 0) return null
-        return Regex("<td[^>]*>(.*?)</td>", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
-            .findAll(html.substring(start, end)).map { clean(it.groupValues[1]) }.toList()
-    }
-
-    /** Looks for the cycle (monthly) rows first, then the lifetime rows. */
-    fun parse(html: String, now: Long): UsageInfo? {
-        var best: UsageInfo? = null
-        for (id in ROW_IDS) {
-            val c = cells(html, id) ?: continue
-            if (c.size < 6) continue
-            val allotted = megabytes(c[1])
-            val used = megabytes(c[4]) ?: continue
-            val remaining = megabytes(c[5])
-            val info = UsageInfo(allotted, used, remaining, renewal(html), now)
-            if (allotted != null) return info // a real limit wins
-            if (best == null) best = info      // otherwise keep the first unlimited reading
-        }
-        return best
-    }
-
-    fun renewal(html: String): String {
-        val c = cells(html, "Language.DataTransferRenewal") ?: return ""
-        return c.getOrNull(1)?.takeIf { Regex("^[0-9/.-]{6,12}$").matches(it) } ?: ""
-    }
-
-    fun looksLikeLogin(html: String) = html.contains("name=\"password\"") && html.contains("name=\"username\"")
-}
-
 /**
  * Reads the data allowance from the Sophos user portal with the account's own user name and password.
  * Same safety rules as [PortalClient]: pinned certificate (checked before anything is sent), proxy

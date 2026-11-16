@@ -55,7 +55,10 @@ class UniLinkTileService : TileService() {
         when (st.phase) {
             Phase.Connected -> {
                 tile.state = Tile.STATE_ACTIVE
-                tile.setSubtitleCompat(st.accountName ?: st.title)
+                val left = app.store.data.value.groups.flatMap { it.accounts }
+                    .firstOrNull { it.id == st.accountId }?.usage?.remainingMb
+                val name = st.accountName ?: st.title
+                tile.setSubtitleCompat(if (left != null) "$name · " + ui.getString(R.string.widget_left, formatMb(left)) else name)
             }
             Phase.Connecting -> {
                 tile.state = Tile.STATE_ACTIVE
