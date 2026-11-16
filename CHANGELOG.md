@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.12.1
+- Fix: sign-in could stall for minutes while the portal answered logins instantly. The quick "is an account already live?" check was treated as a failed network whenever it merely timed out, so UniLink waited and retried instead of signing in (only pressing Connect, which skips that check, got through). A slow answer no longer blocks the sign-in; only a portal that cannot be reached at all triggers the quick-retry path. The check also gives up after 4 s of silence instead of 15 s.
+- Fix: pressing Connect now shows "Signing in…" immediately instead of looking frozen while an earlier attempt finishes.
+- Fix: if Pause & sign out is pressed while a sign-in is in progress, that attempt is discarded (and signed out if it had just logged in) instead of coming back online.
+
 ## 1.12.0
 - New: **Most data first** (Settings, off by default). Signs in with the account that has the most data left, using the last "Refresh data usage" readings (readings older than 10 days are ignored). Accounts known to have under 200 MB left are always tried last.
 - New: **one quiet notification when no account can sign in** (all out of data, disabled or rejected). Shown once until a sign-in works again; switch off in Settings.

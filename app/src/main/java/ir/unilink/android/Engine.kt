@@ -156,6 +156,8 @@ class Engine(private val ctx: Context, private val store: Store) {
         forceFresh = true
         failures = 0
         retryAt = 0L
+        // Show the effect of the tap at once; the loop may still be finishing an earlier attempt.
+        _status.update { it.copy(phase = Phase.Connecting, title = str(R.string.st_signing_in), detail = it.groupName ?: "", pendingCert = null) }
         wake.trySend(Unit)
     }
 
@@ -363,6 +365,15 @@ class Engine(private val ctx: Context, private val store: Store) {
         val sinceWifi = (android.os.SystemClock.elapsedRealtime() - wifiDetectedAt) / 1000.0
         val timing = String.format(java.util.Locale.US, "%.1f s", took) +
             if (wifiDetectedAt > 0L && sinceWifi < 600) String.format(java.util.Locale.US, ", %.1f s after Wi-Fi detected", sinceWifi) else ""
+        if (paused) {
+            // Pause & sign out was pressed while this attempt was running: do not come back online.
+            if (outcome is Outcome.LoggedIn && !outcome.adopted) {
+                runCatching { PortalClient(net, g.pins[outcome.url]).logout(outcome.url, outcome.account.username) }
+            }
+            log("Attempt discarded: paused")
+            setStatus(Phase.Paused, str(R.string.st_paused), str(R.string.st_paused_d))
+            return
+        }
         when (val o = outcome) {
             is Outcome.LoggedIn -> {
                 val now = System.currentTimeMillis()
@@ -452,13 +463,15 @@ class Engine(private val ctx: Context, private val store: Store) {
         if (!fresh) {
             probe@ for (acc in candidates) {
                 for (url in g.portalUrls) {
-                    when (val r = PortalClient(net, g.pins[url], connectSeconds = 3L).keepalive(url, acc.username, g.quotaPhrases)) {
+                    when (val r = PortalClient(net, g.pins[url], fast = true).keepalive(url, acc.username, g.quotaPhrases)) {
                         is PortalResult.Success -> return Outcome.LoggedIn(acc, url, adopted = true)
                         is PortalResult.CertReview ->
                             return Outcome.NeedCert(CertPrompt(g.id, g.name, url, r.fingerprint, r.subject, r.changed))
                         is PortalResult.Failure -> {
                             // The portal could not even be reached (Wi-Fi just joined, roaming, congestion):
                             // a login would only wait out the same timeout, so go straight to a quick retry.
+                            // A reply that merely times out (connection fine, live check slow) must NOT stop the
+                            // sign-in: the portal often answers logins instantly while ignoring live checks.
                             if (isNetworkNotReady(r.reason)) {
                                 log("Portal $url not reachable yet: ${r.reason}")
                                 return Outcome.Retry(r.reason, 2)
@@ -602,10 +615,10 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     private fun intervalMs(g: NetworkGroup) = g.keepaliveSec.coerceIn(30, 180) * 1000L
 
+    /** True only when the portal could not be reached at all (not when it was slow to answer). */
     private fun isNetworkNotReady(reason: String): Boolean {
         val r = reason.lowercase()
-        return "failed to connect" in r || "timed out" in r || "timeout" in r ||
-            "unable to resolve" in r || "no route" in r || "unreachable" in r
+        return "failed to connect" in r || "unable to resolve" in r || "no route" in r || "unreachable" in r
     }
 
     /**

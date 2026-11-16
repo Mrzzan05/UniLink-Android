@@ -58,7 +58,8 @@ fun sha256Hex(bytes: ByteArray): String =
 class PortalClient(
     private val network: Network,
     private val pin: String?,
-    private val connectSeconds: Long = 6,
+    /** Probe mode: short timeouts for a quick "is anything answering?" question. */
+    private val fast: Boolean = false,
 ) {
     /** Element names of the last reply (diagnostics only; no values). */
     @Volatile var replyFields: String? = null
@@ -92,9 +93,9 @@ class PortalClient(
             .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS))
             .sslSocketFactory(ssl.socketFactory, trust)
             .hostnameVerifier { _, _ -> true } // identity is established by the pinned fingerprint
-            .connectTimeout(connectSeconds, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .callTimeout(25, TimeUnit.SECONDS)
+            .connectTimeout(if (fast) 3 else 6, TimeUnit.SECONDS)
+            .readTimeout(if (fast) 4 else 15, TimeUnit.SECONDS)
+            .callTimeout(if (fast) 8 else 25, TimeUnit.SECONDS)
             .build()
     }
 
