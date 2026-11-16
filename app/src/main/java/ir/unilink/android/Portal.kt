@@ -81,13 +81,13 @@ object PortalParser {
     }
 }
 
-internal class Capture {
+private class Capture {
     @Volatile var fingerprint: String? = null
     @Volatile var subject: String? = null
 }
 
 /** Accepts only the certificate whose SHA-256 fingerprint was approved by the user. */
-internal class PinTrust(private val pin: String?, private val cap: Capture) : X509TrustManager {
+private class PinTrust(private val pin: String?, private val cap: Capture) : X509TrustManager {
     override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
         throw CertificateException("Client certificates are not supported")
     }

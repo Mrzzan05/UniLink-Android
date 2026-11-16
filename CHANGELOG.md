@@ -1,34 +1,5 @@
 # Changelog
 
-## 1.11.0
-- New: **update notice**. Once a day, while the UniLink service is running, the app asks GitHub for the latest release. Only if that version is newer than the installed one, and only once per version, it shows one quiet notification that opens the release page. Nothing is installed, no account data is sent, and it can be switched off in Settings ("Tell me about new versions"). Failed checks (for example before sign-in gives internet) retry after 30 minutes.
-
-## 1.10.6
-- New: the **Connection** tab shows the data bar of the account in use, with a Refresh button. When you open the tab and the numbers are older than 30 minutes, it refreshes once by itself (only while the app is on screen).
-- The bar now shows what is **left**: it shrinks as data is used, turns amber below 30% and red below 10%.
-- "Updated 0 minutes ago" now reads "just now".
-
-## 1.10.5
-- Fix: the portal's usage page marks its rows with single-quoted ids, which the reader did not recognise. It now accepts both, so the remaining data, allowance and renewal date are read.
-
-## 1.10.4
-- Fix: the usage page address was built wrongly (its query string was encoded into the path), so the portal answered 404. Now the address is exact, as the portal's own script requests it.
-
-## 1.10.3
-- The usage requests now identify as a normal mobile browser (some portals answer only those) and an unreadable usage page reports a short, masked excerpt of the reply so the cause can be found.
-
-## 1.10.2
-- Fix: the usage page needs the portal's anti-forgery token, which the home page hands to its script as `Cyberoam.c$rFt0k3n`. UniLink now reads it from there, so the usage page loads.
-
-## 1.10.1
-- Fix: the data-usage reading found no table because the portal's home page is only a shell. UniLink now also loads the usage page (AccountStatus.jsp) the way the portal's own script does, sending the portal's anti-forgery token when the page provides one.
-- A DNS miss right after Wi-Fi comes up is retried once. If the table still cannot be found, the error now lists non-sensitive diagnostics (page sizes, whether a token was found) so it can be traced.
-
-## 1.10.0
-- New: **data usage per account**. The Accounts tab shows a bar with the remaining data, the monthly allowance and the renewal date for each account, read from the university user portal (`gate1.urmia.ac.ir:8450`) with the same user name and password. Tap **Refresh data usage** (or the account's own refresh) when you want fresh numbers; nothing is fetched in the background.
-- Safety: the user-portal certificate is pinned like the Wi-Fi portal (you approve its fingerprint once, and nothing is sent before that), the proxy is ignored, redirects are refused, and the account signs out of the user portal after each reading. Only the user name and password of that account are sent, and only to the configured portal address.
-- Groups saved by older versions get the Urmia usage address automatically; other groups keep the feature off.
-
 ## 1.9.2
 - Diagnostics: the "Signed in" and "Retry in" log lines now include how long the attempt took and how long after Wi-Fi was detected, so slow connections can be traced from a shared log.
 - The connection timeout to the portal is 6 seconds instead of 10, so a first attempt made just as Wi-Fi comes up fails and retries sooner.

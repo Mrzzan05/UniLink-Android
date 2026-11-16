@@ -187,20 +187,4 @@
     <string name="conn_wifi_off_title">وای‌فای خاموش است</string>
     <string name="conn_wifi_off_body">UniLink فقط از طریق وای‌فای دانشگاه وارد می‌شود. اندروید اجازه نمی‌دهد برنامه‌ها وای‌فای را خودشان روشن کنند؛ دکمه را بزن و کلید وای‌فای را روشن کن.</string>
     <string name="conn_wifi_on">روشن کردن وای‌فای</string>
-    <string name="usage_refresh">به‌روزرسانی حجم</string>
-    <string name="usage_loading">در حال خواندن از پرتال کاربر…</string>
-    <string name="usage_never">حجم هنوز دریافت نشده. دکمه‌ی به‌روزرسانی را بزنید.</string>
-    <string name="usage_left">%1$s باقی‌مانده از %2$s</string>
-    <string name="usage_unlimited">نامحدود · %1$s مصرف‌شده</string>
-    <string name="usage_renews">تمدید: %1$s</string>
-    <string name="usage_updated">به‌روز شده: %1$s</string>
-    <string name="usage_error">خواندن حجم ناموفق بود: %1$s</string>
-    <string name="usage_just_now">همین الان</string>
-    <string name="usage_title">حجم باقی‌مانده · %1$s</string>
-    <string name="usage_refresh_short">به‌روزرسانی</string>
-    <string name="notif_update_channel">نسخه‌ی جدید</string>
-    <string name="notif_update_title">نسخه‌ی %1$s یونی‌لینک آماده است</string>
-    <string name="notif_update_text">برای باز شدن صفحه‌ی دانلود لمس کنید.</string>
-    <string name="set_update_title">اطلاع از نسخه‌ی جدید</string>
-    <string name="set_update_sub">روزی یک بار آخرین نسخه از گیت‌هاب پرسیده می‌شود و فقط اگر نسخه‌ی شما قدیمی‌تر باشد یک اعلان آرام نشان داده می‌شود. چیزی نصب نمی‌شود و اطلاعات حساب فرستاده نمی‌شود.</string>
 </resources>

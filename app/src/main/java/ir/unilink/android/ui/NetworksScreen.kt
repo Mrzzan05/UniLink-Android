@@ -173,7 +173,7 @@ private fun GroupDialog(initial: NetworkGroup?, onDismiss: () -> Unit, onSave: (
                 keepaliveSec = keepInt ?: 180,
                 timeZone = tz.trim(),
                 quotaPhrases = lines(phrases),
-                pins = base.pins.filterKeys { it in urlList || it == base.usageUrl },
+                pins = base.pins.filterKeys { it in urlList },
             )
         )
     }

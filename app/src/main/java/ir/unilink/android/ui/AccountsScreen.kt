@@ -15,15 +15,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import android.text.format.DateUtils
-import ir.unilink.android.UsageInfo
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -100,9 +91,6 @@ fun AccountsScreen(app: UniLinkApp) {
 @Composable
 private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
     val status by app.engine.status.collectAsState()
-    val busy by app.engine.usageBusy.collectAsState()
-    val usageErrors by app.engine.usageErrors.collectAsState()
-    val usageCert by app.engine.usageCert.collectAsState()
     var editing by remember { mutableStateOf<Account?>(null) }
     var adding by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf<Account?>(null) }
@@ -127,24 +115,6 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
                 }
         }
         app.engine.kick()
-    }
-
-    if (group.usageUrl.isNotBlank() && group.accounts.isNotEmpty()) {
-        Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.End) {
-            TextButton(
-                onClick = { app.engine.refreshUsage(group.id) },
-                enabled = busy.isEmpty(),
-            ) {
-                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.usage_refresh))
-            }
-        }
-    }
-    usageCert?.takeIf { it.groupId == group.id }?.let { p ->
-        Box(Modifier.padding(top = 4.dp, bottom = 4.dp)) {
-            CertificateCard(p) { app.engine.approveUsageCertificate(p) }
-        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -203,12 +173,6 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
                         if (acc.passwordRejected) Tag(stringResource(R.string.tag_password_rejected), StatusRed)
                         if (acc.isExhaustedNow(group, now)) Tag(stringResource(R.string.tag_quota_used), StatusAmber)
                     }
-                    if (group.usageUrl.isNotBlank()) UsageBlock(
-                        usage = acc.usage,
-                        loading = acc.id in busy,
-                        error = usageErrors[acc.id],
-                        onRefresh = { app.engine.refreshUsage(group.id, acc.id) },
-                    )
                 }
             }
         }
@@ -346,64 +310,4 @@ private fun AccountDialog(initial: Account?, onDismiss: () -> Unit, onSave: (Acc
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } },
     )
-}
-
-
-private fun formatMb(mb: Double): String =
-    if (mb >= 1024.0) String.format(java.util.Locale.US, "%.1f GB", mb / 1024.0)
-    else String.format(java.util.Locale.US, "%.0f MB", mb)
-
-@Composable
-internal fun UsageBlock(usage: UsageInfo?, loading: Boolean, error: String?, onRefresh: () -> Unit) {
-    Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        if (usage == null) {
-            Text(
-                stringResource(if (loading) R.string.usage_loading else R.string.usage_never),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            // The bar shows what is LEFT: it shrinks as data is used and turns amber, then red.
-            val leftShare = usage.fraction?.let { 1f - it }
-            val shown by animateFloatAsState(leftShare ?: 0f, label = "usageBar")
-            val barColor = when {
-                leftShare == null -> StatusGreen
-                leftShare > 0.30f -> StatusGreen
-                leftShare > 0.10f -> StatusAmber
-                else -> StatusRed
-            }
-            if (leftShare != null) {
-                LinearProgressIndicator(
-                    progress = { shown },
-                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                    color = barColor,
-                    trackColor = barColor.copy(alpha = 0.18f),
-                )
-            }
-            val line = if (usage.allottedMb != null && usage.remainingMb != null)
-                stringResource(R.string.usage_left, formatMb(usage.remainingMb), formatMb(usage.allottedMb))
-            else stringResource(R.string.usage_unlimited, formatMb(usage.usedMb))
-            Text(line, style = MaterialTheme.typography.bodyMedium)
-            val age = System.currentTimeMillis() - usage.fetchedAt
-            val updated = if (age < 60_000L) stringResource(R.string.usage_just_now)
-            else DateUtils.getRelativeTimeSpanString(
-                usage.fetchedAt, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS
-            ).toString()
-            val tail = buildString {
-                if (usage.renewal.isNotBlank()) append(stringResource(R.string.usage_renews, usage.renewal)).append("  ·  ")
-                append(stringResource(R.string.usage_updated, updated))
-            }
-            Text(tail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        if (loading && usage != null) {
-            Text(stringResource(R.string.usage_loading), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        if (error != null && !loading) {
-            Text(
-                stringResource(R.string.usage_error, error),
-                style = MaterialTheme.typography.bodySmall,
-                color = StatusAmber,
-            )
-        }
-    }
 }

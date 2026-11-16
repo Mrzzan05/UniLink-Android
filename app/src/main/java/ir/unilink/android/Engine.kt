@@ -78,17 +78,6 @@ class Engine(private val ctx: Context, private val store: Store) {
     private val _log = MutableStateFlow<List<String>>(emptyList())
     val logLines: StateFlow<List<String>> = _log.asStateFlow()
 
-    // ---- data usage (user portal) ----
-    private val usageLock = Mutex()
-    private val _usageBusy = MutableStateFlow<Set<String>>(emptySet())
-    /** Account ids whose usage is being fetched right now. */
-    val usageBusy: StateFlow<Set<String>> = _usageBusy.asStateFlow()
-    private val _usageErrors = MutableStateFlow<Map<String, String>>(emptyMap())
-    /** Account id -> last fetch error (cleared on success). */
-    val usageErrors: StateFlow<Map<String, String>> = _usageErrors.asStateFlow()
-    private val _usageCert = MutableStateFlow<CertPrompt?>(null)
-    val usageCert: StateFlow<CertPrompt?> = _usageCert.asStateFlow()
-
     private var job: Job? = null
     private var tracker: WifiTracker? = null
 
@@ -186,57 +175,6 @@ class Engine(private val ctx: Context, private val store: Store) {
         failures = 0
         retryAt = 0L
         wake.trySend(Unit)
-    }
-
-    /** Fetches the data allowance of one account, or of every usable account when [accountId] is null. */
-    fun refreshUsage(groupId: String, accountId: String? = null) {
-        scope.launch {
-            val g = store.data.value.groups.firstOrNull { it.id == groupId } ?: return@launch
-            if (g.usageUrl.isBlank()) return@launch
-            val targets = g.accounts.filter { (accountId == null || it.id == accountId) && it.enabled && !it.passwordRejected }
-            if (targets.isEmpty()) return@launch
-            usageLock.withLock {
-                _usageBusy.update { it + targets.map { a -> a.id } }
-                for (acc in targets) {
-                    val fresh = store.data.value.groups.firstOrNull { it.id == groupId } ?: break
-                    val client = UsageClient(tracker?.network, fresh.pins[fresh.usageUrl])
-                    when (val r = client.fetch(fresh.usageUrl, acc.username, acc.password)) {
-                        is UsageResult.Ok -> {
-                            store.updateAccount(groupId, acc.id) { it.copy(usage = r.info) }
-                            _usageErrors.update { it - acc.id }
-                            log("Usage for \"${acc.name}\": ${r.info.usedMb.toInt()} MB used" +
-                                (r.info.remainingMb?.let { ", ${it.toInt()} MB left" } ?: ", unlimited"))
-                        }
-                        is UsageResult.BadCredentials -> {
-                            _usageErrors.update { it + (acc.id to r.message) }
-                            log("Usage for \"${acc.name}\": user portal rejected the login (${r.message})")
-                        }
-                        is UsageResult.CertReview -> {
-                            _usageCert.value = CertPrompt(fresh.id, fresh.name, fresh.usageUrl, r.fingerprint, r.subject, r.changed)
-                            _usageErrors.update { it + (acc.id to "certificate") }
-                            _usageBusy.update { it - targets.map { a -> a.id }.toSet() }
-                            return@withLock
-                        }
-                        is UsageResult.Failure -> {
-                            _usageErrors.update { it + (acc.id to r.reason) }
-                            log("Usage for \"${acc.name}\" failed: ${r.reason}")
-                        }
-                    }
-                    _usageBusy.update { it - acc.id }
-                }
-            }
-        }
-    }
-
-    fun approveUsageCertificate(p: CertPrompt) {
-        store.updateGroup(p.groupId) { it.copy(pins = it.pins + (p.url to p.fingerprint)) }
-        _usageCert.value = null
-        log("Certificate approved for ${p.url} (${p.fingerprint.take(11)}…)")
-        refreshUsage(p.groupId)
-    }
-
-    fun dismissUsageCertificate() {
-        _usageCert.value = null
     }
 
     // ---------- main loop ----------

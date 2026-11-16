@@ -187,20 +187,4 @@
     <string name="conn_wifi_off_title">Wi-Fi is off</string>
     <string name="conn_wifi_off_body">UniLink can only sign in over campus Wi-Fi. Android does not let apps switch Wi-Fi on by themselves, so tap the button and flip the Wi-Fi switch.</string>
     <string name="conn_wifi_on">Turn on Wi-Fi</string>
-    <string name="usage_refresh">Refresh data usage</string>
-    <string name="usage_loading">Reading from the user portal…</string>
-    <string name="usage_never">Data usage not fetched yet. Tap Refresh.</string>
-    <string name="usage_left">%1$s left of %2$s</string>
-    <string name="usage_unlimited">Unlimited · %1$s used</string>
-    <string name="usage_renews">Renews %1$s</string>
-    <string name="usage_updated">Updated %1$s</string>
-    <string name="usage_error">Could not read usage: %1$s</string>
-    <string name="usage_just_now">just now</string>
-    <string name="usage_title">Data left · %1$s</string>
-    <string name="usage_refresh_short">Refresh</string>
-    <string name="notif_update_channel">Update available</string>
-    <string name="notif_update_title">UniLink %1$s is available</string>
-    <string name="notif_update_text">Tap to open the download page.</string>
-    <string name="set_update_title">Tell me about new versions</string>
-    <string name="set_update_sub">Once a day UniLink asks GitHub for the latest version and shows one quiet notice only if yours is older. Nothing is installed and no account data is sent.</string>
 </resources>
