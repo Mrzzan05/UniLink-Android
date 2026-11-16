@@ -12,6 +12,8 @@
 
 [**Download the latest APK**](../../releases/latest) · [فارسی](README_FA.md) · [Changelog](CHANGELOG.md)
 
+<img src="docs/showcase.png" alt="UniLink screenshots" width="900">
+
 </div>
 
 ---
@@ -34,14 +36,18 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 | **Persian and English** | Full Persian interface with right-to-left layout, or English. Follows the phone's language, or choose in Settings. |
 | **Quick tile, widget and checklist** | A Quick Settings tile and a small home-screen widget to connect or pause, and a first-run checklist that walks you through permissions. |
 | **Glass interface** | Frosted-glass cards over a gradient backdrop, in light and dark themes that follow the phone. |
+| **Remaining data** | One tap reads each account's remaining data from the university user portal and shows a bar on the Accounts and Connection tabs (and in the widget and tile). The usage page's certificate is pinned the same way as the sign-in portal's. |
+| **Smart account order** | Optional **Most data first** signs in with the account that has the most data left; accounts under 200 MB are tried last. |
+| **Quiet notifications** | One notice when no account can sign in, and one when a newer UniLink release exists. No data is sent for either, and both can be switched off. |
+| **Guided start** | A short first-run tour with a Skip button, and a battery guide for Samsung, Xiaomi, Huawei, Oppo, Vivo and Pixel phones in Settings. |
 | **Keeps existing sessions** | If the portal already has a live session for your account, UniLink keeps it alive instead of signing in again. |
 | **Diagnostics** | In-memory activity log you can share. Passwords and student numbers are never logged. |
 
 ## Screenshots
 
-| Connection | Networks | Settings |
-|---|---|---|
-| <img src="docs/screenshots/connection.png" width="240"> | <img src="docs/screenshots/networks.png" width="240"> | <img src="docs/screenshots/settings.png" width="240"> |
+| Connection | Accounts | Networks | Settings |
+|---|---|---|---|
+| <img src="docs/screenshots/connection.png" width="200"> | <img src="docs/screenshots/accounts.png" width="200"> | <img src="docs/screenshots/networks.png" width="200"> | <img src="docs/screenshots/settings.png" width="200"> |
 
 ## Install
 
@@ -51,19 +57,23 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 4. **Accounts** tab → **+** → add your student number and password.
 5. Connect to `UUWN`. On the **Connection** tab a certificate card appears: compare the fingerprint with the one your browser shows on the normal login page, then tap **Trust this certificate**.
 
-After that it signs in on its own whenever you're on campus Wi-Fi. From v1.5.0 on, releases are signed with a private key, so new versions install over old ones and keep your accounts and settings. (Moving from an older version to 1.5.0 needs a one-time uninstall and re-add of your accounts, because the signing key changed.)
+The first time you open the app a short tour explains these steps; tap **Skip** to close it (Settings → **Show the tour again** brings it back).
+
+After that it signs in on its own whenever you're on campus Wi-Fi. New versions install over old ones (same signing key) and keep your accounts and settings.
 
 Optionally add the **Quick Settings tile** (edit the quick panel) or the **home-screen widget** (long-press the home screen → Widgets → UniLink).
 
 ## The five tabs
 
 - **Connection**: current state, active account, last keepalive, Connect / Pause & sign out.
-- **Accounts**: add, edit, reorder, disable, set default, clear a block.
+- **Accounts**: add, edit, reorder, disable, set default, clear a block, **Refresh data usage** and per-account data bars.
 - **Networks**: Wi-Fi names, portal URLs, keepalive interval (30–180 s), time zone, extra quota phrases, pinned certificates.
 - **Activity**: what happened and why, with a share button.
-- **Settings**: automatic sign-in, start on boot, wake lock, permission shortcuts.
+- **Settings**: automatic sign-in, start on boot, wake lock, most-data-first, notifications, permission shortcuts, the battery guide and the tour.
 
 ## Battery
+
+Many phones (Samsung, Xiaomi, Huawei, Oppo, Vivo…) stop background apps on their own. **Settings → Battery guide** has step-by-step instructions for each brand, with your own brand first and a button that opens the battery permission.
 
 UniLink keeps a background service running, so it does use some battery. Settings has two switches to tune that:
 
@@ -79,6 +89,9 @@ Some VPN apps, in strict mode, forbid other apps from connecting to the Wi-Fi di
 
 **"Waiting for campus Wi-Fi" although I'm connected**
 Allow **Location** (Android hides the Wi-Fi name without it), or turn on portal-only matching for the network on the **Networks** tab.
+
+**Remaining data shows an error or nothing** (log lines mention `usage`)
+The usage page (`gate1.urmia.ac.ir:8450`) is reached over the same Wi-Fi binding, so a strict VPN blocks it too; exclude UniLink from the VPN as above. The first reading asks you to trust that page's certificate, the same way as the sign-in portal.
 
 **No status notification**
 Notifications may be blocked for the app; the checklist on the Connection tab and **Settings → Permissions** show the real state.
@@ -100,7 +113,9 @@ git push origin v1.0.2
 
 Locally: open the folder in Android Studio (JDK 17, Android SDK 35) and press Run, or use the included Gradle wrapper (`./gradlew assembleRelease`, Gradle 8.9).
 
-Releases are signed with a private key kept in GitHub Secrets; the workflow refuses to publish anything signed with the public debug key. Builds without that key (forks, local) fall back to the public `app/debug.keystore`, which is for testing only. See [SECURITY.md](SECURITY.md) to verify a download's signing certificate.
+The build first runs the unit tests (portal and usage-page parsers, account ordering, version comparison); a failing test stops the build.
+
+Release APKs are signed with the project's private release key, kept in GitHub Secrets and never in the repo. The tag workflow checks the signer before publishing, and the signing certificate's SHA-256 is at the bottom of each release's notes (see [SECURITY.md](SECURITY.md)). The debug APK uses the public `app/debug.keystore`, so it is only a fallback and does not update a release install.
 
 ## Status and limitations
 
@@ -111,11 +126,7 @@ Releases are signed with a private key kept in GitHub Secrets; the workflow refu
 
 ## Roadmap
 
-Import/export of network profiles · per-account usage notes · more battery tuning · IzzyOnDroid and F-Droid listing (in progress)
-
-## Security
-
-See [SECURITY.md](SECURITY.md) for how releases are signed (with the fingerprint to check), how to report a vulnerability, and how your data is handled.
+Import/export of network profiles · more battery tuning · IzzyOnDroid and F-Droid listing (in progress)
 
 ## License
 
