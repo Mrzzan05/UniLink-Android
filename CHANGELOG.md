@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.14.0
+- New: **Use this account** button on every usable account card. It makes the account the default, signs out of the one in use, signs in with it and opens the Connection tab. It tries only that account: if its password is rejected or its data is used up, the Connection tab says so instead of silently using another account. Settings has "Switch right after choosing an account" (on by default); when off, the button only makes the account the default.
+- New: the **Connection tab** now shows a red "Password rejected" card whenever an enabled account has a rejected password (also while another account is signed in), with a button to the Accounts tab. Accounts with a rejected password get a red **Fix password** button.
+
 ## 1.13.1
 - Fix: the battery guide button did nothing when battery use was already unrestricted. It now opens the app settings page (with the per-app Battery entry) in that case, and the system allow dialog otherwise.
 

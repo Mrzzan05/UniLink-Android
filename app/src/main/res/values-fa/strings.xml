@@ -240,4 +240,15 @@
     <string name="batt_oppo">۱. تنظیمات ← باتری ← UniLink (یا تنظیمات بیشتر باتری ← مدیریت باتری برنامه‌ها) ← اجازه‌ی فعالیت در پس‌زمینه.\n۲. تنظیمات ← برنامه‌ها ← مدیریت برنامه‌ها ← UniLink: «راه‌اندازی خودکار» (Auto launch) را روشن کنید.\n۳. برنامه‌های اخیر را باز کنید و کارت UniLink را قفل کنید.</string>
     <string name="batt_vivo">۱. تنظیمات ← باتری ← مدیریت مصرف انرژی در پس‌زمینه ← UniLink ← اجازه‌ی مصرف بالای انرژی در پس‌زمینه.\n۲. تنظیمات ← برنامه‌ها ← شروع خودکار (Autostart): UniLink را روشن کنید.\n۳. UniLink را در برنامه‌های اخیر قفل کنید.</string>
     <string name="batt_other">۱. تنظیمات ← برنامه‌ها ← UniLink ← مصرف باتری برنامه (یا باتری) ← بدون محدودیت (Unrestricted).\n۲. اگر گوشی‌تان باتری تطبیقی (Adaptive Battery) یا فهرست بهینه‌سازی باتری دارد، مطمئن شوید UniLink بهینه‌سازی نشده است.\n۳. تا وقتی به یونی‌لینک نیاز دارید صرفه‌جویی باتری را خاموش کنید یا UniLink را به استثناها اضافه کنید.</string>
+    <string name="acc_use">استفاده از این حساب</string>
+    <string name="acc_fix_password">اصلاح رمز</string>
+    <string name="conn_badpw_title">رمز رد شد</string>
+    <string name="conn_badpw_body">پرتال رمز %1$s را رد کرد و یونی‌لینک آن را کنار گذاشته. حساب را ویرایش کن تا دوباره استفاده شود.</string>
+    <string name="conn_badpw_open">باز کردن حساب‌ها</string>
+    <string name="st_use_failed_title">نمی‌شود از «%1$s» استفاده کرد</string>
+    <string name="st_use_rejected">پرتال رمز آن را رد کرد. حساب را در تب حساب‌ها ویرایش کن یا حساب دیگری را بردار.</string>
+    <string name="st_use_quota">حجم این ماه آن تمام شده. حساب دیگری را بردار.</string>
+    <string name="st_use_disabled">حساب خاموش است. در تب حساب‌ها روشنش کن.</string>
+    <string name="set_switch_title">بعد از انتخاب حساب بلافاصله سوئیچ کن</string>
+    <string name="set_switch_sub">با «استفاده از این حساب» از حساب فعلی خارج می‌شود، با این حساب وارد می‌شود و تب اتصال باز می‌شود. اگر خاموش باشد فقط آن را پیش‌فرض می‌کند.</string>
 </resources>

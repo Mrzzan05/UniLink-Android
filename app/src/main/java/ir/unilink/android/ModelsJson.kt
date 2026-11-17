@@ -91,6 +91,7 @@ fun AppData.toJson(): JSONObject {
             .put("lastUpdateCheck", settings.lastUpdateCheck)
             .put("preferMostData", settings.preferMostData)
             .put("notifyProblems", settings.notifyProblems)
+            .put("switchOnUse", settings.switchOnUse)
             .put("tourDone", settings.tourDone)
     )
 }
@@ -110,6 +111,7 @@ fun appDataFromJson(o: JSONObject): AppData {
             lastUpdateCheck = s.optLong("lastUpdateCheck", 0L),
             preferMostData = s.optBoolean("preferMostData", false),
             notifyProblems = s.optBoolean("notifyProblems", true),
+            switchOnUse = s.optBoolean("switchOnUse", true),
             // Existing installs have already seen the app: do not show them the first-run tour.
             tourDone = s.optBoolean("tourDone", s.has("autoSignIn")),
         ),

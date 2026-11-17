@@ -170,7 +170,7 @@ fun AppRoot(app: UniLinkApp) {
                     CompositionLocalProvider(LocalBarPad provides padding.calculateBottomPadding()) {
                         when (page) {
                             0 -> ConnectionScreen(app) { goTo(it) }
-                            1 -> AccountsScreen(app)
+                            1 -> AccountsScreen(app) { goTo(it) }
                             2 -> NetworksScreen(app)
                             3 -> ActivityScreen(app)
                             else -> SettingsScreen(app)

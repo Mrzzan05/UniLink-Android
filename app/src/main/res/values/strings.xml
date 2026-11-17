@@ -240,4 +240,15 @@
     <string name="batt_oppo">1. Settings → Battery → UniLink (or More battery settings → App battery management) → Allow background activity.\n2. Settings → Apps → App management → UniLink: turn on Auto launch (Allow auto-start).\n3. Open Recent apps and lock the UniLink card.</string>
     <string name="batt_vivo">1. Settings → Battery → Background power consumption management → UniLink → Allow high background power consumption.\n2. Settings → Apps → Autostart: turn UniLink on.\n3. Lock UniLink in Recent apps.</string>
     <string name="batt_other">1. Settings → Apps → UniLink → App battery usage (or Battery) → Unrestricted.\n2. If your phone has Adaptive Battery or a battery optimisation list, make sure UniLink is not optimised.\n3. Turn off Battery saver while you rely on UniLink, or add UniLink as an exception.</string>
+    <string name="acc_use">Use this account</string>
+    <string name="acc_fix_password">Fix password</string>
+    <string name="conn_badpw_title">Password rejected</string>
+    <string name="conn_badpw_body">The portal rejected the password of %1$s, so UniLink skips it. Edit the account to use it again.</string>
+    <string name="conn_badpw_open">Open Accounts</string>
+    <string name="st_use_failed_title">Cannot use \"%1$s\"</string>
+    <string name="st_use_rejected">The portal rejected its password. Edit the account on the Accounts tab, or pick another one.</string>
+    <string name="st_use_quota">Its data allowance is used up this month. Pick another account.</string>
+    <string name="st_use_disabled">The account is switched off. Turn it on in the Accounts tab.</string>
+    <string name="set_switch_title">Switch right after choosing an account</string>
+    <string name="set_switch_sub">Tapping Use this account signs out of the current one, signs in with it and opens the Connection tab. When off, it only makes it the default.</string>
 </resources>

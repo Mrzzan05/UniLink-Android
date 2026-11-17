@@ -29,7 +29,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -60,12 +62,13 @@ import ir.unilink.android.NetworkGroup
 import ir.unilink.android.R
 import ir.unilink.android.UniLinkApp
 import ir.unilink.android.isExhaustedNow
+import ir.unilink.android.isUsable
 import ir.unilink.android.moved
 
 private enum class AccountAction { Edit, Delete, SetDefault, Up, Down, Toggle, ClearBlock }
 
 @Composable
-fun AccountsScreen(app: UniLinkApp) {
+fun AccountsScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
     val data by app.store.data.collectAsState()
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     val group = data.groups.firstOrNull { it.id == selectedId } ?: data.groups.firstOrNull()
@@ -93,13 +96,13 @@ fun AccountsScreen(app: UniLinkApp) {
                     }
                 }
             }
-            AccountsContent(app, group)
+            AccountsContent(app, group, goToTab)
         }
     }
 }
 
 @Composable
-private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
+private fun AccountsContent(app: UniLinkApp, group: NetworkGroup, goToTab: (Int) -> Unit) {
     val status by app.engine.status.collectAsState()
     val busy by app.engine.usageBusy.collectAsState()
     val usageErrors by app.engine.usageErrors.collectAsState()
@@ -108,6 +111,20 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
     var adding by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf<Account?>(null) }
     val now = System.currentTimeMillis()
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val switchOnUse = app.store.data.collectAsState().value.settings.switchOnUse
+
+    fun use(acc: Account) {
+        if (switchOnUse) {
+            ir.unilink.android.KeepAliveService.start(ctx)
+            app.engine.useAccount(group.id, acc.id)
+            goToTab(0)
+        } else {
+            val i = group.accounts.indexOfFirst { it.id == acc.id }
+            app.store.updateGroup(group.id) { g -> g.copy(accounts = g.accounts.moved(i, 0)) }
+            app.engine.kick()
+        }
+    }
 
     fun act(acc: Account, action: AccountAction) {
         val i = group.accounts.indexOfFirst { it.id == acc.id }
@@ -210,6 +227,14 @@ private fun AccountsContent(app: UniLinkApp, group: NetworkGroup) {
                         error = usageErrors[acc.id],
                         onRefresh = { app.engine.refreshUsage(group.id, acc.id) },
                     )
+                    if (acc.passwordRejected) {
+                        Button(
+                            onClick = { editing = acc },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = StatusRed),
+                        ) { Text(stringResource(R.string.acc_fix_password)) }
+                    } else if (acc.isUsable(group, now) && status.accountId != acc.id) {
+                        OutlinedButton(onClick = { use(acc) }) { Text(stringResource(R.string.acc_use)) }
+                    }
                 }
             }
         }

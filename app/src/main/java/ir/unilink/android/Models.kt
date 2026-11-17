@@ -74,6 +74,8 @@ data class Settings(
     val notifyProblems: Boolean = true,
     /** The first-run tour was finished or skipped. */
     val tourDone: Boolean = false,
+    /** Choosing "Use this account" also jumps to the Connection tab and signs in with it at once. */
+    val switchOnUse: Boolean = true,
 )
 
 data class AppData(

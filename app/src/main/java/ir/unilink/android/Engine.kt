@@ -98,6 +98,8 @@ class Engine(private val ctx: Context, private val store: Store) {
     @Volatile private var userRequested = false
     /** Set by Connect: skip the "is a session already live?" probe and sign in fresh. */
     @Volatile private var forceFresh = false
+    /** Set by "Use this account": the next sign-in tries only this account and reports why it failed. */
+    @Volatile private var forcedAccountId: String? = null
     @Volatile private var retryAt = 0L
     private var lastSignature = ""
     private var lastMatchNote = ""
@@ -120,6 +122,8 @@ class Engine(private val ctx: Context, private val store: Store) {
         class NeedCert(val prompt: CertPrompt) : Outcome()
         object NoAccounts : Outcome()
         class Retry(val reason: String, val minSeconds: Int) : Outcome()
+        /** The account the user picked cannot be used; shown on the Connection tab instead of silently using another. */
+        class Problem(val title: String, val detail: String) : Outcome()
     }
 
     val isRunning: Boolean get() = job?.isActive == true
@@ -159,6 +163,37 @@ class Engine(private val ctx: Context, private val store: Store) {
         // Show the effect of the tap at once; the loop may still be finishing an earlier attempt.
         _status.update { it.copy(phase = Phase.Connecting, title = str(R.string.st_signing_in), detail = it.groupName ?: "", pendingCert = null) }
         wake.trySend(Unit)
+    }
+
+    /**
+     * The user picked an account: make it the default, sign out of the one in use and sign in with
+     * this one right away. If it cannot be used (wrong password, no data) the Connection tab says so.
+     */
+    fun useAccount(groupId: String, accountId: String) {
+        store.updateGroup(groupId) { g ->
+            g.copy(accounts = g.accounts.moved(g.accounts.indexOfFirst { it.id == accountId }, 0))
+        }
+        val g = store.data.value.groups.firstOrNull { it.id == groupId } ?: return
+        val acc = g.accounts.firstOrNull { it.id == accountId } ?: return
+        if (session?.accountId == accountId) return // already signed in with it
+        paused = false
+        userRequested = true
+        forceFresh = true
+        forcedAccountId = accountId
+        failures = 0
+        retryAt = 0L
+        _status.update { it.copy(phase = Phase.Connecting, title = str(R.string.st_signing_in), detail = acc.name, pendingCert = null) }
+        scope.launch {
+            val s = session
+            session = null
+            val net = tracker?.network
+            val sg = s?.let { x -> store.data.value.groups.firstOrNull { it.id == x.groupId } }
+            if (s != null && net != null && sg != null) {
+                val ok = opLock.withLock { runCatching { PortalClient(net, sg.pins[s.url]).logout(s.url, s.username) }.getOrDefault(false) }
+                log("Switching to \"${acc.name}\": " + if (ok) "signed out \"${s.accountName}\"" else "sign-out of \"${s.accountName}\" failed")
+            } else log("Switching to \"${acc.name}\"")
+            wake.trySend(Unit)
+        }
     }
 
     fun kick() {
@@ -422,6 +457,16 @@ class Engine(private val ctx: Context, private val store: Store) {
                 )
                 retryAt = now + 60_000
             }
+            is Outcome.Problem -> {
+                retryAt = System.currentTimeMillis() + 60_000
+                _status.value = EngineStatus(
+                    phase = Phase.AccountNeeded,
+                    title = o.title,
+                    detail = o.detail,
+                    groupName = g.name,
+                    nextCheck = retryAt,
+                )
+            }
             is Outcome.Retry -> {
                 failures++
                 val now = System.currentTimeMillis()
@@ -450,7 +495,18 @@ class Engine(private val ctx: Context, private val store: Store) {
 
     private suspend fun attemptLogin(g: NetworkGroup, net: Network): Outcome {
         val now = System.currentTimeMillis()
-        val candidates = LoginOrder.order(
+        val forced = forcedAccountId?.let { id -> g.accounts.firstOrNull { it.id == id } }
+        forcedAccountId = null
+        if (forced != null && !forced.isUsable(g, now)) {
+            val why = when {
+                !forced.enabled -> str(R.string.st_use_disabled)
+                forced.passwordRejected -> str(R.string.st_use_rejected)
+                else -> str(R.string.st_use_quota)
+            }
+            log("\"${forced.name}\" cannot be used: $why")
+            return Outcome.Problem(str(R.string.st_use_failed_title, forced.name), why)
+        }
+        val candidates = if (forced != null) listOf(forced) else LoginOrder.order(
             g.accounts.filter { it.isUsable(g, now) }, now, store.data.value.settings.preferMostData
         )
         if (candidates.isEmpty()) return Outcome.NoAccounts
@@ -506,12 +562,19 @@ class Engine(private val ctx: Context, private val store: Store) {
                 is PortalResult.Success -> return Outcome.LoggedIn(acc, usedUrl)
                 is PortalResult.Quota -> {
                     markExhausted(g, acc)
+                    if (forced != null) {
+                        log("\"${acc.name}\": data allowance used up this month")
+                        return Outcome.Problem(str(R.string.st_use_failed_title, acc.name), str(R.string.st_use_quota))
+                    }
                     log("\"${acc.name}\": data allowance used up this month — trying next account")
                     delay(3_000)
                 }
                 is PortalResult.BadCredentials -> {
                     store.updateAccount(g.id, acc.id) { it.copy(passwordRejected = true) }
                     log("\"${acc.name}\": password rejected — account blocked until edited")
+                    if (forced != null) {
+                        return Outcome.Problem(str(R.string.st_use_failed_title, acc.name), str(R.string.st_use_rejected))
+                    }
                 }
                 is PortalResult.CertReview ->
                     return Outcome.NeedCert(CertPrompt(g.id, g.name, usedUrl, r.fingerprint, r.subject, r.changed))

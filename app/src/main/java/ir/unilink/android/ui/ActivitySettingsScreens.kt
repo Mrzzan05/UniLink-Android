@@ -194,6 +194,11 @@ fun SettingsScreen(app: UniLinkApp) {
                 s.preferMostData,
             ) { v -> app.store.updateSettings { it.copy(preferMostData = v) } }
             SwitchRow(
+                stringResource(R.string.set_switch_title),
+                stringResource(R.string.set_switch_sub),
+                s.switchOnUse,
+            ) { v -> app.store.updateSettings { it.copy(switchOnUse = v) } }
+            SwitchRow(
                 stringResource(R.string.set_problems_title),
                 stringResource(R.string.set_problems_sub),
                 s.notifyProblems,

@@ -136,6 +136,23 @@ fun ConnectionScreen(app: UniLinkApp, goToTab: (Int) -> Unit) {
             }
         }
 
+        val rejected = appData.groups.flatMap { g -> g.accounts.filter { it.enabled && it.passwordRejected } }
+        if (rejected.isNotEmpty()) {
+            Panel(Modifier.staggerIn(2)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Warning, contentDescription = null, tint = StatusRed, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.conn_badpw_title), style = MaterialTheme.typography.titleSmall, color = StatusRed)
+                }
+                Text(
+                    stringResource(R.string.conn_badpw_body, rejected.joinToString(", ") { it.name }),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                TextButton(onClick = { goToTab(1) }) { Text(stringResource(R.string.conn_badpw_open)) }
+            }
+        }
+
         inUse?.let { (g, acc) ->
             if (g.usageUrl.isNotBlank()) {
                 // Refresh once when the tab opens with old numbers (only while the app is on screen).
