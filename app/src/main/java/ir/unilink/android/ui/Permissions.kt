@@ -45,6 +45,33 @@ fun requestBatteryUnrestricted(ctx: Context) {
     }
 }
 
+/**
+ * Opens something useful whatever the state: the system "allow" dialog when battery use is still
+ * restricted, otherwise the app's own settings page (the per-app Battery entry lives there), and
+ * the system battery-optimisation list if even that page cannot open.
+ */
+fun openBatterySettings(ctx: Context) {
+    val flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    if (!batteryUnrestricted(ctx)) {
+        val ok = runCatching {
+            ctx.startActivity(
+                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    .setData(Uri.parse("package:${ctx.packageName}")).addFlags(flags)
+            )
+        }.isSuccess
+        if (ok) return
+    }
+    val ok = runCatching {
+        ctx.startActivity(
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                .setData(Uri.parse("package:${ctx.packageName}")).addFlags(flags)
+        )
+    }.isSuccess
+    if (!ok) runCatching {
+        ctx.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(flags))
+    }
+}
+
 /** True when the phone's Wi-Fi radio is switched on. */
 fun wifiRadioOn(ctx: Context): Boolean = runCatching {
     (ctx.applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager).isWifiEnabled

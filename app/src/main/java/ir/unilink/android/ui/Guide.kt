@@ -196,7 +196,7 @@ fun BatteryGuidePanel() {
                 }
             }
         }
-        OutlinedButton(onClick = { requestBatteryUnrestricted(ctx) }) {
+        OutlinedButton(onClick = { openBatterySettings(ctx) }) {
             Text(stringResource(R.string.batt_open_settings))
         }
         Text(

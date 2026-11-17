@@ -232,7 +232,7 @@
     <string name="batt_guide_title">Battery guide for your phone</string>
     <string name="batt_guide_intro">Some phones stop background apps to save battery, so UniLink misses keepalives and you go offline. Open your phone brand and follow the steps.</string>
     <string name="batt_your_phone">your phone</string>
-    <string name="batt_open_settings">Open battery permission</string>
+    <string name="batt_open_settings">Open battery settings</string>
     <string name="batt_guide_note">Menu names differ a little between Android versions. If you cannot find an entry, search for Battery in Settings.</string>
     <string name="batt_samsung">1. Settings → Apps → UniLink → Battery → choose Unrestricted.\n2. Settings → Battery → Background usage limits: turn off Put unused apps to sleep, and make sure UniLink is not in the Sleeping apps or Deep sleeping apps lists (add it to Never sleeping apps).\n3. Open Recent apps, tap the UniLink icon at the top and choose Keep open.</string>
     <string name="batt_xiaomi">1. Settings → Apps → Manage apps → UniLink → Battery saver → No restrictions.\n2. On the same page turn on Autostart.\n3. Open Recent apps, press and hold the UniLink card and tap the lock icon so it is not cleared.\n4. Settings → Battery: turn off any battery saver that limits background apps.</string>

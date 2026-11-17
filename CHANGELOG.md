@@ -1,8 +1,11 @@
 # Changelog
 
+## 1.13.1
+- Fix: the battery guide button did nothing when battery use was already unrestricted. It now opens the app settings page (with the per-app Battery entry) in that case, and the system allow dialog otherwise.
+
 ## 1.13.0
 - New: **first-run tour**. New installs see six short cards (accounts, trusting the portal, connecting, remaining data, background permissions) with a Skip button; Back also skips. It is shown once; Settings has "Show the tour again". Existing installs do not see it.
-- New: **battery guide** in Settings with step-by-step instructions for Samsung, Xiaomi/Redmi/POCO, Huawei/Honor, Oppo/Realme/OnePlus, Vivo/iQOO and Pixel/other phones (your phone's brand opens first), plus a button for the battery permission. Persian and English.
+- New: **battery guide** in Settings with step-by-step instructions for Samsung, Xiaomi/Redmi/POCO, Huawei/Honor, Oppo/Realme/OnePlus, Vivo/iQOO and Pixel/other phones (your phone's brand opens first), plus a button for the battery permission. Persian and English. The battery button opens the system dialog when battery use is restricted, otherwise the app settings page (where the per-app Battery entry is).
 
 ## 1.12.1
 - Fix: sign-in could stall for minutes while the portal answered logins instantly. The quick "is an account already live?" check was treated as a failed network whenever it merely timed out, so UniLink waited and retried instead of signing in (only pressing Connect, which skips that check, got through). A slow answer no longer blocks the sign-in; only a portal that cannot be reached at all triggers the quick-retry path. The check also gives up after 4 s of silence instead of 15 s.
