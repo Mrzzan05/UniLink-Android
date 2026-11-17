@@ -1,9 +1,9 @@
-## UniLink Android v1.9.2
+## UniLink Android v1.13.0
 
-- Log lines for sign-in and retries now show timings (how long the attempt took, how long after Wi-Fi was detected), to help trace slow connections. Use Activity > Share log to send one.
-- Faster retry when the first attempt is made just as Wi-Fi comes up (6 s connection timeout instead of 10 s).
+- **New: first-run tour** with a Skip button (shown once; Settings can show it again).
+- **New: battery guide** in Settings with steps for Samsung, Xiaomi, Huawei, Oppo, Vivo and Pixel/other phones, so UniLink keeps running in the background.
 
 ### Update
-Install `UniLink-v1.9.2.apk` over the previous version; accounts and settings are kept. The signing certificate SHA-256 is at the bottom of these notes (see SECURITY.md).
+Install `UniLink-v1.13.0.apk` over the previous version; accounts and settings are kept. The signing certificate SHA-256 is at the bottom of these notes (see SECURITY.md).
 
 > Unofficial project, not affiliated with any university or with Sophos. Use only accounts you are allowed to use.

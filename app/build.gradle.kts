@@ -12,8 +12,8 @@ android {
         applicationId = "ir.unilink.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 17
-        versionName = "1.9.2"
+        versionCode = 28
+        versionName = "1.13.0"
 
         // Drop translations of libraries we don't ship a UI for (the app itself is en + fa).
         @Suppress("DEPRECATION")
@@ -87,4 +87,12 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // Installs the baseline profiles that ship with Compose, so the first launch is faster.
     implementation("androidx.profileinstaller:profileinstaller:1.3.1")
+
+    testImplementation(kotlin("test"))
+}
+
+// Run the pure-logic unit tests (portal/usage parsers, account ordering, version compare) before any
+// APK is assembled, so a portal-format regression or a bad change fails the build instead of shipping.
+tasks.matching { it.name == "assembleDebug" || it.name == "assembleRelease" }.configureEach {
+    dependsOn("testDebugUnitTest")
 }
