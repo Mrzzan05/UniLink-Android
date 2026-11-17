@@ -54,17 +54,5 @@ object UpdateCheck {
         }
     }
 
-    /** True when [latest] (like "v1.8.1") is a higher version than [current] (like "1.8.0"). */
-    fun isNewer(latest: String, current: String): Boolean {
-        fun parts(v: String) = v.removePrefix("v").split('.', '-', '+')
-            .map { it.takeWhile(Char::isDigit).toIntOrNull() ?: 0 }
-        val a = parts(latest)
-        val b = parts(current)
-        for (i in 0 until maxOf(a.size, b.size)) {
-            val x = a.getOrElse(i) { 0 }
-            val y = b.getOrElse(i) { 0 }
-            if (x != y) return x > y
-        }
-        return false
-    }
+    fun isNewer(latest: String, current: String): Boolean = Versions.isNewer(latest, current)
 }

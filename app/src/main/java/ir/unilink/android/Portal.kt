@@ -112,7 +112,12 @@ fun sha256Hex(bytes: ByteArray): String =
  * Talks to the portal strictly over the given Wi-Fi [Network]: sockets and DNS are bound to it,
  * the system proxy is ignored, redirects are refused and the certificate must match the pin.
  */
-class PortalClient(private val network: Network, private val pin: String?) {
+class PortalClient(
+    private val network: Network,
+    private val pin: String?,
+    /** Probe mode: short timeouts for a quick "is anything answering?" question. */
+    private val fast: Boolean = false,
+) {
     /** Element names of the last reply (diagnostics only; no values). */
     @Volatile var replyFields: String? = null
         private set
@@ -145,9 +150,9 @@ class PortalClient(private val network: Network, private val pin: String?) {
             .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS))
             .sslSocketFactory(ssl.socketFactory, trust)
             .hostnameVerifier { _, _ -> true } // identity is established by the pinned fingerprint
-            .connectTimeout(6, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .callTimeout(25, TimeUnit.SECONDS)
+            .connectTimeout(if (fast) 3 else 6, TimeUnit.SECONDS)
+            .readTimeout(if (fast) 4 else 15, TimeUnit.SECONDS)
+            .callTimeout(if (fast) 8 else 25, TimeUnit.SECONDS)
             .build()
     }
 

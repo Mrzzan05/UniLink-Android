@@ -1,7 +1,5 @@
 package ir.unilink.android
 
-import org.json.JSONArray
-import org.json.JSONObject
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
@@ -89,10 +87,17 @@ fun <T> List<T>.moved(from: Int, to: Int): List<T> {
     return m
 }
 
-// ---------- JSON ----------
+/** "1.5 GB" / "840 MB" (always Latin digits so it lines up in both languages). */
+fun formatMb(mb: Double): String =
+    if (mb >= 1024.0) String.format(java.util.Locale.US, "%.1f GB", mb / 1024.0)
+    else String.format(java.util.Locale.US, "%.0f MB", mb)
 
-private fun JSONArray.strings(): List<String> = (0 until length()).map { getString(it) }
-private fun List<String>.toJson() = JSONArray().also { a -> forEach { a.put(it) } }
+/** Decides which accounts to try first when signing in. Pure, so it can be unit-tested. */
+object LoginOrder {
+    /** Below this many MB left an account is tried last. */
+    const val LOW_MB = 200.0
+    /** Older readings are ignored: the monthly quota may have renewed since. */
+    const val FRESH_MS = 10L * 24 * 3_600_000
 
 fun Account.toJson() = JSONObject()
     .put("id", id).put("name", name).put("username", username).put("password", password)
