@@ -224,6 +224,13 @@ fun SettingsScreen(app: UniLinkApp) {
             ) { requestBatteryUnrestricted(ctx) }
         }
 
+        BatteryGuidePanel()
+
+        OutlinedButton(
+            onClick = { app.store.updateSettings { it.copy(tourDone = false) } },
+            modifier = Modifier.padding(top = 6.dp),
+        ) { Text(stringResource(R.string.set_tour_again)) }
+
         AboutPanel()
 
         Button(

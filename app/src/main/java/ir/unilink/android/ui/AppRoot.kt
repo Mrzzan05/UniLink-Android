@@ -47,6 +47,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -92,6 +93,7 @@ fun AppRoot(app: UniLinkApp) {
     val scope = rememberCoroutineScope()
     val tick = rememberTick()
     val selected = pager.targetPage
+    val appData by app.store.data.collectAsState()
 
     fun goTo(i: Int) {
         scope.launch { pager.animateScrollToPage(i, animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessLow)) }
@@ -176,6 +178,9 @@ fun AppRoot(app: UniLinkApp) {
                     }
                 }
             }
+        }
+        if (!appData.settings.tourDone) {
+            TourOverlay { app.store.updateSettings { it.copy(tourDone = true) } }
         }
     }
 }
